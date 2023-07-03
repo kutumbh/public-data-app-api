@@ -1,6 +1,6 @@
 const communityModel = require('../models/community.model')
 const surnamesModel = require('../models/surname.model');
-// community
+
 exports.getCommunityData = async(req, res) => {
     try {
         const community = await communityModel.find().sort({ name: 1});

@@ -1,0 +1,13 @@
+const request = require("supertest");
+const app = require("../index");
+describe("GET /name details", function() {
+ it("responds with name details", function(done) {
+ request(app)
+ .get("/getAllNames")
+ .set("Host", "https://web-app.sptr.co")
+ .set(
+ "Authorization",
+ "eyJraWQiOiJJNWpGN1lEZWZTTHhcL1h6SGhtZ0ZBRHkyemJJOFczbDloaWZaK2JUTmxUUT0iLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiI0NjkxNGQxMC1mOGFkLTRlNzktOTlmZC0xNzFjYmU4NDBlZDMiLCJhdWQiOiI3Mml0NzJmY3Vyb21vM281NWY3dTlvOHVsZCIsImV2ZW50X2lkIjoiMmRiZTNmYWYtYzBjYi00MTdkLWFiMzUtMWZjYzEzOTc5MmY3IiwidG9rZW5fdXNlIjoiaWQiLCJhdXRoX3RpbWUiOjE2MTA5NjU0ODEsImlzcyI6Imh0dHBzOlwvXC9jb2duaXRvLWlkcC5hcC1zb3V0aC0xLmFtYXpvbmF3cy5jb21cL2FwLXNvdXRoLTFfTGp2Q2JPS1dqIiwibmFtZSI6InZpc2hudSIsImNvZ25pdG86dXNlcm5hbWUiOiI0NjkxNGQxMC1mOGFkLTRlNzktOTlmZC0xNzFjYmU4NDBlZDMiLCJleHAiOjE2MTA5NjkwODEsImlhdCI6MTYxMDk2NTQ4MSwiZW1haWwiOiJ2aXNobnUuZGFuZ2lAc3B0ci5jbyJ9.cU-lpabeS4fXj2q-_j5EhALm4qdlWt3PohcA25HO2e7oVKwC-hJcXiLut0JteAKGZlV2IUeuu_cJncq_mgFOeLc3p64HZ8_iFptQzcjpxfyAFK_IlloTIB6EHYKos5ntdyjMK3NaCaNen_Jj4JKMMQ4EEknyGLcbCnQwSrUbKzZ7BK3HUWcZ6ynoTdFq9_P7qlmIBPEXY8NTEcEkrZbJbLme4rxDpmx3d3gRMQEfGllpJpFx3WJeUWAhVfkFE_zAPafQRZsLlrgb6P58FBMFNNOijaT7K1FmP9G-2KQDKu7XdsYqngJvevVHN8bgnSub-pT1MRGWVdYXnYtWGoCNsQ"
+   )  .expect(201, done);
+ });
+});

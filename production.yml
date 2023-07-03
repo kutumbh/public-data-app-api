@@ -1,0 +1,7 @@
+apps:
+    - script: "index.js"
+      name: "Data Insertion Tool --port 3100"
+      watch: false
+      exec_mode: "cluster"
+      env:
+        NODE_ENV: "production"

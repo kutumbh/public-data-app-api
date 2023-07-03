@@ -1,0 +1,13 @@
+const request = require("supertest");
+const app = require("../index");
+describe("GET /place details", function() {
+ it("responds with place details", function(done) {
+ request(app)
+ .get("/placesData/getPlaceData")
+ .set("Accept", "application/json")
+ .set(
+ "Authorization",
+"eyJraWQiOiJJNWpGN1lEZWZTTHhcL1h6SGhtZ0ZBRHkyemJJOFczbDloaWZaK2JUTmxUUT0iLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiI0NjkxNGQxMC1mOGFkLTRlNzktOTlmZC0xNzFjYmU4NDBlZDMiLCJhdWQiOiI3Mml0NzJmY3Vyb21vM281NWY3dTlvOHVsZCIsImV2ZW50X2lkIjoiNGZkZTAzMWEtM2MxMi00YjVlLTkwMjEtMWZlNDllOGU5ZGRmIiwidG9rZW5fdXNlIjoiaWQiLCJhdXRoX3RpbWUiOjE2MTA0NDQzMjgsImlzcyI6Imh0dHBzOlwvXC9jb2duaXRvLWlkcC5hcC1zb3V0aC0xLmFtYXpvbmF3cy5jb21cL2FwLXNvdXRoLTFfTGp2Q2JPS1dqIiwibmFtZSI6InZpc2hudSIsImNvZ25pdG86dXNlcm5hbWUiOiI0NjkxNGQxMC1mOGFkLTRlNzktOTlmZC0xNzFjYmU4NDBlZDMiLCJleHAiOjE2MTA0NDc5MjgsImlhdCI6MTYxMDQ0NDMyOCwiZW1haWwiOiJ2aXNobnUuZGFuZ2lAc3B0ci5jbyJ9.BEa6ujmV4y0_Ag03KBXAUk9cuVxrnRtDRjNUPxAxyN4Jh9uzLZinCtBtXokQr6I1a-migEjw8Np5znXTzOGrcrqlxnZYtPIR9_pV091BACl53BsOTjgrMcq1_bIY8fTUDqFPlrqTnmSOHyKwnOiZMYLDiAFFhGYIvBJdwTq5wYSa3su_gr_OXyQ0tHxdx1aa_haE7MT-68Iq-mYHQiOYYWcUZUPB_KdOMZyjtyY-5PFGrxheIxNOWXQ2ug-FQXpdm5aP7EFlQv5KxX6TFts2mHjAg2olyy2XhE1VEWeYt3rWoG4g0njxxNT2cpNfivRu7Bt0dnmGoY4L15YhZkoZTQ" )
+ .expect(201, done);
+ });
+});

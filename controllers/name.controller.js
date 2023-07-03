@@ -14,26 +14,24 @@ require("dotenv").config();
 const s3 = new aws.S3();
 
 // create a Name
-exports.getNames = async (req, res) => {
+exports.getNames = async(req, res) => {
   try {
-    const name = req.body.name;
-    if (name.indexOf("-") > -1) {
-      const rangeData = _.split(name, "-");
-      console.log("--", rangeData[0], rangeData[1], rangeData[2]);
-      const community = await namesModel.count({
-        name: { $regex: "^[" + [name] + "]" },
-      });
-      console.log(community);
-      res.status(201).send(community);
-    } else {
-      res.status(404).send({
-        message: "No Data Found!",
-      });
-    }
+      const name  = req.body.name;
+      if (name.indexOf('-') > -1) {
+        const rangeData = _.split(name, '-')
+        console.log("--",rangeData[0], rangeData[1], rangeData[2])
+        const community = await namesModel.count({name: { $regex: "^[" + [name] + "]" }})
+        console.log(community)
+          res.status(201).send(community)
+      } else {
+          res.status(404).send({
+              message: "No Data Found!"
+          })
+      }
   } catch (e) {
-    res.status(400).send(e);
+      res.status(400).send(e)
   }
-};
+}
 
 exports.createNames = async ({ body }, res) => {
   try {
@@ -308,15 +306,17 @@ const fileFilter = (req, file, cb) => {
 function getSignedUrl(data) {
   try {
     console.log("data", data);
-    var key = data.replace(process.env.AWS_BUCKET_MASTER_URL, "");
+    var key = data.replace(
+      "https://dev-kutumbh-masters.s3.ap-south-1.amazonaws.com/",
+      ""
+    );
     // key = key.replace('/', '')
     console.log("key", key);
     var url = s3.getSignedUrl("getObject", {
-      Bucket: process.env.AWS_BUCKET_NAME_MASTER,
+      Bucket: "dev-kutumbh-masters",
       Key: key,
       Expires: 604800, // Expire 7 days   //on
     });
-    console.log("url is:", url);
     return url;
   } catch (e) {
     console.log("Error", e.toString());
@@ -669,185 +669,164 @@ exports.getNamesFilter = async (req, res) => {
     //     }
     // }
     // *************** Translation filters *******************
-    if (options === "Transliterations" && status === "Summary") {
+     if (options === "Transliterations" && status === "Summary") {
       if (_.isEmpty(name)) {
-        // aggregate([
+         // aggregate([
         //   { $unwind: "$translations" }, { $group: { _id: "$translations", totalCount: { $sum: 1 } } }])
-        getnames = await namesModel.aggregate([
+        getnames = await namesModel.aggregate( [
           { $unwind: "$translations" },
-          { $group: { _id: "$translations.lang", count: { $sum: 1 } } },
-          { $project: { count: 1 } },
-        ]);
-        _.forEach(getnames, function (value) {
-          if (value._id === "HI") {
-            value._id = "HINDI";
-          } else if (value._id === "GU") {
-            value._id = "GUJARATI";
-          } else if (value._id === "MR") {
-            value._id = "MARATHI";
-          } else if (value._id === "PA") {
-            value._id = "PUNJABI";
-          } else if (value._id === "SD") {
-            value._id = "SINDHI";
-          } else if (value._id === "TA") {
-            value._id = "TAMIL";
-          } else if (value._id === "BN") {
-            value._id = "BENGALI";
-          } else if (value._id === "TLG") {
-            value._id = "TELUGU";
-          }
-          console.log(value);
-        });
-        console.log(getnames);
-        if (getnames) {
-          res
-            .status(200)
-            .send([{ option: { name: "translations", getnames } }]);
-        } else {
-          res.status(404).send({
-            message: "No Data Found!",
+          { $group: { "_id": "$translations.lang", "count": { $sum: 1 } } },
+          { $project: { "count": 1 } }
+          ]);
+          _.forEach(getnames, function (value) {
+              if (value._id === "HI") {
+                  value._id = "HINDI"
+              } else if (value._id === "GU") {
+                  value._id = "GUJARATI"
+              } else if (value._id === "MR") {
+                  value._id = "MARATHI"
+              } else if (value._id === "PA") {
+                  value._id = "PUNJABI"
+              } else if (value._id === "SD") {
+                  value._id = "SINDHI"
+              } else if (value._id === "TA") {
+                  value._id = "TAMIL"
+              } else if (value._id === "BN") {
+                  value._id = "BENGALI"
+              } else if (value._id === "TLG") {
+                  value._id = "TELUGU"
+              }
+              console.log(value);
           });
-        }
+          console.log(getnames)
+          if (getnames) {
+              res.status(200).send([{ option: { "name": "translations", getnames } }])
+          } else {
+              res.status(404).send({
+                  message: "No Data Found!"
+              })
+          }
       }
-    } else if (
-      options === "Transliterations" &&
-      status === "Exception Report" &&
-      _.isEmpty(name)
-    ) {
-      if (_.isEmpty(name)) {
-        getnames = await namesModel
-          .find({ translations: { $eq: [] } })
-          .limit(1000);
+  }
+  else if (options === "Transliterations" && status === "Exception Report" && _.isEmpty(name)) {
+    if (_.isEmpty(name)) {
+      getnames = await namesModel.find({ "translations": { $eq: [] } }).limit(1000);
         // let totalSurnames = { totalCount:getSurname };
-        _.forEach(getnames, function (value) {
-          if (value.nStatus === "NN") {
-            value.nStatus = "Name New";
-          } else if (value.nStatus === "NE") {
-            value.nStatus = "Name Entry";
-          } else if (value.nStatus === "NV") {
-            value.nStatus = "Name Verified";
-          } else if (value.nStatus === "NI") {
-            value.nStatus = "Name Invalid";
-          } else if (value.nStatus === "NP") {
-            value.nStatus = "Name Published";
-          }
-        });
-        console.log(getnames);
+        _.forEach(getnames, function(value) {
+        if(value.nStatus === "NN"){
+          value.nStatus = "Name New"
+      } else if(value.nStatus === "NE"){
+          value.nStatus = "Name Entry"
+      } else if(value.nStatus === "NV"){
+          value.nStatus = "Name Verified"
+      } else if(value.nStatus === "NI"){
+          value.nStatus = "Name Invalid"
+      } else if(value.nStatus === "NP"){
+          value.nStatus = "Name Published"
+      }
+    });
+        console.log(getnames)
         if (getnames) {
-          res.status(200).send({ getnames });
+            res.status(200).send({getnames})
         } else {
-          res.status(404).send({
-            message: "No Data Found!",
-          });
+            res.status(404).send({
+                message: "No Data Found!"
+            })
         }
-      }
-    } else if (
-      options === "Transliterations" &&
-      status === "Exception Report" &&
-      !_.isEmpty(name)
-    ) {
-      if (name.indexOf("-") > -1) {
-        getnames = await namesModel
-          .find({
-            translations: { $eq: [] },
-            name: { $regex: "^[" + [name] + "]" },
-          })
-          .limit(1000);
-      } else {
-        getnames = await namesModel
-          .find({ translations: { $eq: [] } })
-          .limit(1000);
-      }
+    }
+}
+else if (options === "Transliterations" && status === "Exception Report" && !_.isEmpty(name)) {
+  if(name.indexOf('-') > -1){
+    getnames = await namesModel.find({ "translations": { $eq: [] },
+    name: { "$regex": "^[" + [name] + "]" }
+  }).limit(1000);
+  }
+  else {
+    getnames = await namesModel.find({ "translations": { $eq: [] } }).limit(1000);
+  }
       // let totalSurnames = { totalCount:getSurname };
-      _.forEach(getnames, function (value) {
-        if (value.nStatus === "NN") {
-          value.nStatus = "Name New";
-        } else if (value.nStatus === "NE") {
-          value.nStatus = "Name Entry";
-        } else if (value.nStatus === "NV") {
-          value.nStatus = "Name Verified";
-        } else if (value.nStatus === "NI") {
-          value.nStatus = "Name Invalid";
-        } else if (value.nStatus === "NP") {
-          value.nStatus = "Name Published";
-        }
-      });
-      console.log(getnames);
+      _.forEach(getnames, function(value) {
+      if(value.nStatus === "NN"){
+        value.nStatus = "Name New"
+    } else if(value.nStatus === "NE"){
+        value.nStatus = "Name Entry"
+    } else if(value.nStatus === "NV"){
+        value.nStatus = "Name Verified"
+    } else if(value.nStatus === "NI"){
+        value.nStatus = "Name Invalid"
+    } else if(value.nStatus === "NP"){
+        value.nStatus = "Name Published"
+    }
+  });
+      console.log(getnames)
       if (getnames) {
-        res.status(200).send({ getnames });
+          res.status(200).send({getnames})
       } else {
-        res.status(404).send({
-          message: "No Data Found!",
+          res.status(404).send({
+              message: "No Data Found!"
+          })
+  }
+}
+   else if (options === "Transliterations") {
+      if (status == "Done" && _.isEmpty(name)) {
+        getnames = await namesModel.find({
+          "translations.lang": optionsData,
+        }).limit(1000);
+      } else if (status == "Pending" && _.isEmpty(name)) {
+        getnames = await namesModel.find({
+          "translations.lang": { $ne: optionsData },
+        }).limit(1000);
+      } else if (status == "All" && _.isEmpty(name)) {
+        getnames = await namesModel.find({
+          $or: [
+            { "translations.lang": { $ne: optionsData } },
+            { "translations.lang": optionsData },
+          ],
+        }).limit(1000);
+      } else if (status == "All" && !_.isEmpty(name)) {
+        if(name.indexOf('-') > -1){
+          getnames = await namesModel.find({
+            $or: [
+              { "translations.lang": optionsData },
+              { "translations.lang": { $ne: optionsData } },
+            ],
+            name: { $regex: "^[" + [name] + "]" },
+          }).limit(1000);
+        }else{
+        getnames = await namesModel.find({
+          $or: [
+            { "translations.lang": optionsData },
+            { "translations.lang": { $ne: optionsData } },
+          ],
+          name: { $regex: name },
+        }).limit(1000);
+       }
+      } else if (status == "Pending" && !_.isEmpty(name)) {
+        if(name.indexOf('-') > -1){
+        getnames = await namesModel.find({
+          "translations.lang": { $ne: optionsData },
+          name: { $regex: "^[" + [name] + "]" },
+        });
+      } else {
+        getnames = await namesModel.find({
+          "translations.lang": { $ne: optionsData },
+          name: { $regex: name },
         });
       }
-    } else if (options === "Transliterations") {
-      if (status == "Done" && _.isEmpty(name)) {
-        getnames = await namesModel
-          .find({
-            "translations.lang": optionsData,
-          })
-          .limit(1000);
-      } else if (status == "Pending" && _.isEmpty(name)) {
-        getnames = await namesModel
-          .find({
-            "translations.lang": { $ne: optionsData },
-          })
-          .limit(1000);
-      } else if (status == "All" && _.isEmpty(name)) {
-        getnames = await namesModel
-          .find({
-            $or: [
-              { "translations.lang": { $ne: optionsData } },
-              { "translations.lang": optionsData },
-            ],
-          })
-          .limit(1000);
-      } else if (status == "All" && !_.isEmpty(name)) {
-        if (name.indexOf("-") > -1) {
-          getnames = await namesModel
-            .find({
-              $or: [
-                { "translations.lang": optionsData },
-                { "translations.lang": { $ne: optionsData } },
-              ],
-              name: { $regex: "^[" + [name] + "]" },
-            })
-            .limit(1000);
-        } else {
-          getnames = await namesModel
-            .find({
-              $or: [
-                { "translations.lang": optionsData },
-                { "translations.lang": { $ne: optionsData } },
-              ],
-              name: { $regex: name },
-            })
-            .limit(1000);
-        }
-      } else if (status == "Pending" && !_.isEmpty(name)) {
-        if (name.indexOf("-") > -1) {
-          getnames = await namesModel.find({
-            "translations.lang": { $ne: optionsData },
-            name: { $regex: "^[" + [name] + "]" },
-          });
-        } else {
-          getnames = await namesModel.find({
-            "translations.lang": { $ne: optionsData },
-            name: { $regex: name },
-          });
-        }
-      } else if (status == "Done" && !_.isEmpty(name)) {
-        if (name.indexOf("-") > -1) {
+    }
+       else if (status == "Done" && !_.isEmpty(name)) {
+         if(name.indexOf('-') > -1){
           getnames = await namesModel.find({
             "translations.lang": optionsData,
             name: { $regex: "^[" + [name] + "]" },
-          });
-        } else {
-          getnames = await namesModel.find({
-            "translations.lang": optionsData,
-            name: { $regex: name },
-          });
-        }
+           });
+         }
+         else{
+        getnames = await namesModel.find({
+          "translations.lang": optionsData,
+          name: { $regex: name },
+        });
+      }
       }
 
       if (getnames) {
@@ -869,19 +848,19 @@ exports.getNamesFilter = async (req, res) => {
         { name: { $regex: name } },
         { name: 1, meaning: 1, translations: 1, nStatus: 1 }
       );
-      _.forEach(getnames, function (value) {
-        if (value.nStatus === "NN") {
-          value.nStatus = "Name New";
-        } else if (value.nStatus === "NE") {
-          value.nStatus = "Name Entry";
-        } else if (value.nStatus === "NV") {
-          value.nStatus = "Name Verified";
-        } else if (value.nStatus === "NI") {
-          value.nStatus = "Name Invalid";
-        } else if (value.nStatus === "NP") {
-          value.nStatus = "Name Published";
-        }
-      });
+      _.forEach(getnames, function(value) {
+        if(value.nStatus === "NN"){
+          value.nStatus = "Name New"
+      } else if(value.nStatus === "NE"){
+          value.nStatus = "Name Entry"
+      } else if(value.nStatus === "NV"){
+          value.nStatus = "Name Verified"
+      } else if(value.nStatus === "NI"){
+          value.nStatus = "Name Invalid"
+      } else if(value.nStatus === "NP"){
+          value.nStatus = "Name Published"
+      }
+    });
       if (getnames) {
         res.status(200).send(getnames);
       } else {
@@ -910,145 +889,133 @@ exports.getNamesFilter = async (req, res) => {
     else if (options === "Tags" && status === "Summary") {
       if (_.isEmpty(name)) {
         getnames = await namesModel.aggregate([
-          { $unwind: "$tags" },
-          { $group: { _id: "$tags", totalCount: { $sum: 1 } } },
-        ]);
-        console.log(getnames);
-        if (getnames) {
-          res.status(200).send([{ option: { name: "tags", getnames } }]);
-        } else {
-          res.status(404).send({
-            message: "No Data Found!",
-          });
-        }
-      }
-    } else if (
-      options === "Tags" &&
-      status === "Exception Report" &&
-      _.isEmpty(name)
-    ) {
-      if (_.isEmpty(name)) {
-        getnames = await namesModel.find({ tags: { $eq: [] } }).limit(1000);
-        // let totalSurnames = { totalCount:getSurname };
-        _.forEach(getnames, function (value) {
-          if (value.nStatus === "NN") {
-            value.nStatus = "Name New";
-          } else if (value.nStatus === "NE") {
-            value.nStatus = "Name Entry";
-          } else if (value.nStatus === "NV") {
-            value.nStatus = "Name Verified";
-          } else if (value.nStatus === "NI") {
-            value.nStatus = "Name Invalid";
-          } else if (value.nStatus === "NP") {
-            value.nStatus = "Name Published";
+          { $unwind: "$tags" }, { $group: { _id: "$tags", totalCount: { $sum: 1 } } }])
+          console.log(getnames)
+          if (getnames) {
+              res.status(200).send([{ option: { "name": "tags", getnames } }])
+          } else {
+              res.status(404).send({
+                  message: "No Data Found!"
+              })
           }
-        });
-        console.log(getnames);
-        if (getnames) {
-          res.status(200).send({ getnames });
-        } else {
-          res.status(404).send({
-            message: "No Data Found!",
-          });
-        }
       }
-    } else if (
-      options === "Tags" &&
-      status === "Exception Report" &&
-      !_.isEmpty(name)
-    ) {
-      if (name.indexOf("-") > -1) {
-        getnames = await namesModel
-          .find({ tags: { $eq: [] }, name: { $regex: "^[" + [name] + "]" } })
-          .limit(1000);
-      } else {
-        getnames = await namesModel.find({ tags: { $eq: [] } }).limit(1000);
-      }
-      // let totalSurnames = { totalCount:getSurname };
-      _.forEach(getnames, function (value) {
-        if (value.nStatus === "NN") {
-          value.nStatus = "Name New";
-        } else if (value.nStatus === "NE") {
-          value.nStatus = "Name Entry";
-        } else if (value.nStatus === "NV") {
-          value.nStatus = "Name Verified";
-        } else if (value.nStatus === "NI") {
-          value.nStatus = "Name Invalid";
-        } else if (value.nStatus === "NP") {
-          value.nStatus = "Name Published";
+  }
+  else if (options === "Tags" && status === "Exception Report" && _.isEmpty(name)) {
+    if (_.isEmpty(name)) {
+      getnames = await namesModel.find({ "tags": { $eq: [] } }).limit(1000);
+        // let totalSurnames = { totalCount:getSurname };
+        _.forEach(getnames, function(value) {
+          if(value.nStatus === "NN"){
+            value.nStatus = "Name New"
+        } else if(value.nStatus === "NE"){
+            value.nStatus = "Name Entry"
+        } else if(value.nStatus === "NV"){
+            value.nStatus = "Name Verified"
+        } else if(value.nStatus === "NI"){
+            value.nStatus = "Name Invalid"
+        } else if(value.nStatus === "NP"){
+            value.nStatus = "Name Published"
         }
       });
-      console.log(getnames);
-      if (getnames) {
-        res.status(200).send({ getnames });
-      } else {
-        res.status(404).send({
-          message: "No Data Found!",
-        });
+        console.log(getnames)
+        if (getnames) {
+            res.status(200).send({getnames})
+        } else {
+            res.status(404).send({
+                message: "No Data Found!"
+            })
+        }
+    }
+}
+else if (options === "Tags" && status === "Exception Report" && !_.isEmpty(name)) {
+  if(name.indexOf('-') > -1){
+    getnames = await namesModel.find({ "tags": { $eq: [] },
+   name: { "$regex": "^[" + [name] + "]" }
+  }).limit(1000);
+  }
+  else {
+    getnames = await namesModel.find({ "tags": { $eq: [] } }).limit(1000);
+  }
+      // let totalSurnames = { totalCount:getSurname };
+      _.forEach(getnames, function(value) {
+        if(value.nStatus === "NN"){
+          value.nStatus = "Name New"
+      } else if(value.nStatus === "NE"){
+          value.nStatus = "Name Entry"
+      } else if(value.nStatus === "NV"){
+          value.nStatus = "Name Verified"
+      } else if(value.nStatus === "NI"){
+          value.nStatus = "Name Invalid"
+      } else if(value.nStatus === "NP"){
+          value.nStatus = "Name Published"
       }
-    } else if (
+    });
+      console.log(getnames)
+      if (getnames) {
+          res.status(200).send({getnames})
+      } else {
+          res.status(404).send({
+              message: "No Data Found!"
+          })
+      
+  }
+}
+    else if (
       options === "Tags" &&
       !_.isNull(optionsData) &&
-      !_.isNull(status) &&
-      status !== "All"
+      !_.isNull(status) && status !== "All"
     ) {
       if (!req.body.name) {
         getnames = await namesModel.find({
           $and: [{ tags: optionsData }, { nStatus: status }],
         });
-        _.forEach(getnames, function (value) {
-          if (value.nStatus === "NN") {
-            value.nStatus = "Name New";
-          } else if (value.nStatus === "NE") {
-            value.nStatus = "Name Entry";
-          } else if (value.nStatus === "NV") {
-            value.nStatus = "Name Verified";
-          } else if (value.nStatus === "NI") {
-            value.nStatus = "Name Invalid";
-          } else if (value.nStatus === "NP") {
-            value.nStatus = "Name Published";
-          }
-        });
-      } else {
-        if (name.indexOf("-") > -1) {
-          const rangeData = _.split(name, "-");
-          console.log("--", rangeData[0], rangeData[2]);
-          getnames = await namesModel
-            .find({
-              $and: [
-                { name: { $regex: "^[" + [name] + "]" } },
-                { tags: optionsData },
-                { nStatus: status },
-              ],
-            })
-            .limit(1000);
-          // console.log(getnames)
-          res.status(201).send(getnames);
-        } else {
-          getnames = await namesModel
-            .find({
-              $and: [
-                { name: { $regex: name } },
-                { tags: optionsData },
-                { nStatus: status },
-              ],
-            })
-            .limit(1000);
-          _.forEach(getnames, function (value) {
-            if (value.nStatus === "NN") {
-              value.nStatus = "Name New";
-            } else if (value.nStatus === "NE") {
-              value.nStatus = "Name Entry";
-            } else if (value.nStatus === "NV") {
-              value.nStatus = "Name Verified";
-            } else if (value.nStatus === "NI") {
-              value.nStatus = "Name Invalid";
-            } else if (value.nStatus === "NP") {
-              value.nStatus = "Name Published";
-            }
-          });
+        _.forEach(getnames, function(value) {
+          if(value.nStatus === "NN"){
+            value.nStatus = "Name New"
+        } else if(value.nStatus === "NE"){
+            value.nStatus = "Name Entry"
+        } else if(value.nStatus === "NV"){
+            value.nStatus = "Name Verified"
+        } else if(value.nStatus === "NI"){
+            value.nStatus = "Name Invalid"
+        } else if(value.nStatus === "NP"){
+            value.nStatus = "Name Published"
         }
+      });
       }
+       else {
+        if (name.indexOf('-') > -1) {
+          const rangeData = _.split(name, '-')
+          console.log("--",rangeData[0], rangeData[2])
+          getnames = await namesModel.find({$and: [{name: { $regex: "^[" + [name] + "]" }},
+            {tags: optionsData }, { nStatus: status }]
+          }).limit(1000);
+          // console.log(getnames)
+            res.status(201).send(getnames)
+        } 
+        else{
+          getnames = await namesModel.find({
+            $and: [
+              { name: { $regex: name } },
+              { tags: optionsData },
+              { nStatus: status },
+            ],
+          }).limit(1000);
+        _.forEach(getnames, function(value) {
+          if(value.nStatus === "NN"){
+            value.nStatus = "Name New"
+        } else if(value.nStatus === "NE"){
+            value.nStatus = "Name Entry"
+        } else if(value.nStatus === "NV"){
+            value.nStatus = "Name Verified"
+        } else if(value.nStatus === "NI"){
+            value.nStatus = "Name Invalid"
+        } else if(value.nStatus === "NP"){
+            value.nStatus = "Name Published"
+        }
+      });
+    }
+  }
       if (getnames) {
         res.status(200).send(getnames);
       } else {
@@ -1056,82 +1023,79 @@ exports.getNamesFilter = async (req, res) => {
           message: "No Data Found!",
         });
       }
-    } else if (
+    }
+    else if (
       options === "Tags" &&
       !_.isNull(optionsData) &&
-      !_.isNull(status) &&
-      status === "All"
+      !_.isNull(status) && status === "All"
     ) {
       if (!req.body.name) {
-        getnames = await namesModel
-          .find({
-            $and: [{ tags: optionsData }, { nStatus: { $ne: "NI" } }],
-          })
-          .limit(1000);
-        _.forEach(getnames, function (value) {
-          if (value.nStatus === "NN") {
-            value.nStatus = "Name New";
-          } else if (value.nStatus === "NE") {
-            value.nStatus = "Name Entry";
-          } else if (value.nStatus === "NV") {
-            value.nStatus = "Name Verified";
-          } else if (value.nStatus === "NI") {
-            value.nStatus = "Name Invalid";
-          } else if (value.nStatus === "NP") {
-            value.nStatus = "Name Published";
-          }
-        });
+        getnames = await namesModel.find({
+          $and: [{ tags: optionsData }, { nStatus: { $ne: "NI" } }],
+        }).limit(1000);
+        _.forEach(getnames, function(value) {
+          if(value.nStatus === "NN"){
+            value.nStatus = "Name New"
+        } else if(value.nStatus === "NE"){
+            value.nStatus = "Name Entry"
+        } else if(value.nStatus === "NV"){
+            value.nStatus = "Name Verified"
+        } else if(value.nStatus === "NI"){
+            value.nStatus = "Name Invalid"
+        } else if(value.nStatus === "NP"){
+            value.nStatus = "Name Published"
+        }
+      });
       } else {
-        if (name.indexOf("-") > -1) {
-          const rangeData = _.split(name, "-");
-          console.log("--", rangeData[0], rangeData[2]);
-          getnames = await namesModel
-            .find({
-              $and: [
-                { name: { $regex: "^[" + [name] + "]" } },
-                { tags: optionsData },
-                { nStatus: { $ne: "NI" } },
-              ],
-            })
-            .limit(1000);
-          _.forEach(getnames, function (value) {
-            if (value.nStatus === "NN") {
-              value.nStatus = "Name New";
-            } else if (value.nStatus === "NE") {
-              value.nStatus = "Name Entry";
-            } else if (value.nStatus === "NV") {
-              value.nStatus = "Name Verified";
-            } else if (value.nStatus === "NI") {
-              value.nStatus = "Name Invalid";
-            } else if (value.nStatus === "NP") {
-              value.nStatus = "Name Published";
-            }
-          });
-          // console.log(getnames)
-          //   res.status(201).send(getnames)
-        } else {
+        if (name.indexOf('-') > -1) {
+          const rangeData = _.split(name, '-')
+          console.log("--",rangeData[0], rangeData[2])
           getnames = await namesModel.find({
             $and: [
-              { name: { $regex: name } },
+              {name: { $regex: "^[" + [name] + "]" }},
               { tags: optionsData },
-              { nStatus: { $ne: "NI" } },
-            ],
-          });
-          _.forEach(getnames, function (value) {
-            if (value.nStatus === "NN") {
-              value.nStatus = "Name New";
-            } else if (value.nStatus === "NE") {
-              value.nStatus = "Name Entry";
-            } else if (value.nStatus === "NV") {
-              value.nStatus = "Name Verified";
-            } else if (value.nStatus === "NI") {
-              value.nStatus = "Name Invalid";
-            } else if (value.nStatus === "NP") {
-              value.nStatus = "Name Published";
-            }
-          });
+             { nStatus: { $ne: "NI" } },
+           ],
+         }).limit(1000);
+         _.forEach(getnames, function(value) {
+          if(value.nStatus === "NN"){
+            value.nStatus = "Name New"
+        } else if(value.nStatus === "NE"){
+            value.nStatus = "Name Entry"
+        } else if(value.nStatus === "NV"){
+            value.nStatus = "Name Verified"
+        } else if(value.nStatus === "NI"){
+            value.nStatus = "Name Invalid"
+        } else if(value.nStatus === "NP"){
+            value.nStatus = "Name Published"
         }
+      });
+          // console.log(getnames)
+          //   res.status(201).send(getnames)
+        }
+   else {      
+       getnames = await namesModel.find({
+     $and: [
+      { name: { $regex: name } },
+      { tags: optionsData },
+      { nStatus: { $ne: "NI" } },
+    ],
+  })
+      _.forEach(getnames, function(value) {
+          if(value.nStatus === "NN"){
+            value.nStatus = "Name New"
+        } else if(value.nStatus === "NE"){
+            value.nStatus = "Name Entry"
+        } else if(value.nStatus === "NV"){
+            value.nStatus = "Name Verified"
+        } else if(value.nStatus === "NI"){
+            value.nStatus = "Name Invalid"
+        } else if(value.nStatus === "NP"){
+            value.nStatus = "Name Published"
+        }
+      });
       }
+    }
       if (getnames) {
         res.status(200).send(getnames);
       } else {
@@ -1145,207 +1109,96 @@ exports.getNamesFilter = async (req, res) => {
     else if (options === "Religion" && status === "Summary") {
       if (_.isEmpty(name)) {
         getnames = await namesModel.aggregate([
-          { $unwind: "$religion" },
-          { $group: { _id: "$religion", totalCount: { $sum: 1 } } },
-        ]);
-        console.log(getnames);
-        if (getnames) {
-          res.status(200).send([{ option: { name: "religion", getnames } }]);
-        } else {
-          res.status(404).send({
-            message: "No Data Found!",
-          });
-        }
+          { $unwind: "$religion" }, { $group: { _id: "$religion", totalCount: { $sum: 1 } } }])
+          console.log(getnames)
+          if (getnames) {
+              res.status(200).send([{ option: { "name": "religion", getnames } }])
+          } else {
+              res.status(404).send({
+                  message: "No Data Found!"
+              })
+          }
       }
-    } else if (
-      options === "Religion" &&
-      status === "Exception Report" &&
-      _.isEmpty(name)
-    ) {
-      if (_.isEmpty(name)) {
-        getnames = await namesModel.find({ religion: { $eq: [] } }).limit(1000);
+  }
+  else if (options === "Religion" && status === "Exception Report" && _.isEmpty(name)) {
+    if (_.isEmpty(name)) {
+      getnames = await namesModel.find({ "religion": { $eq: [] } }).limit(1000);
         // let totalSurnames = { totalCount:getSurname };
-        _.forEach(getnames, function (value) {
-          if (value.nStatus === "NN") {
-            value.nStatus = "Name New";
-          } else if (value.nStatus === "NE") {
-            value.nStatus = "Name Entry";
-          } else if (value.nStatus === "NV") {
-            value.nStatus = "Name Verified";
-          } else if (value.nStatus === "NI") {
-            value.nStatus = "Name Invalid";
-          } else if (value.nStatus === "NP") {
-            value.nStatus = "Name Published";
-          }
-        });
-        console.log(getnames);
-        if (getnames) {
-          res.status(200).send({ getnames });
-        } else {
-          res.status(404).send({
-            message: "No Data Found!",
-          });
+        _.forEach(getnames, function(value) {
+          if(value.nStatus === "NN"){
+            value.nStatus = "Name New"
+        } else if(value.nStatus === "NE"){
+            value.nStatus = "Name Entry"
+        } else if(value.nStatus === "NV"){
+            value.nStatus = "Name Verified"
+        } else if(value.nStatus === "NI"){
+            value.nStatus = "Name Invalid"
+        } else if(value.nStatus === "NP"){
+            value.nStatus = "Name Published"
         }
-      }
-    } else if (
-      options === "Religion" &&
-      status === "Exception Report" &&
-      !_.isEmpty(name)
-    ) {
-      if (name.indexOf("-") > -1) {
-        getnames = await namesModel
-          .find({
-            religion: { $eq: [] },
-            name: { $regex: "^[" + [name] + "]" },
-          })
-          .limit(1000);
-      } else {
-        getnames = await namesModel.find({ religion: { $eq: [] } }).limit(1000);
-      }
+      });
+        console.log(getnames)
+        if (getnames) {
+            res.status(200).send({getnames})
+        } else {
+            res.status(404).send({
+                message: "No Data Found!"
+            })
+        }
+    }
+}
+else if (options === "Religion" && status === "Exception Report" && !_.isEmpty(name)) {
+  if(name.indexOf('-') > -1){
+    getnames = await namesModel.find({ "religion": { $eq: [] }, 
+    name: { "$regex": "^[" + [name] + "]" }
+  }).limit(1000);
+  }
+  else {
+    getnames = await namesModel.find({ "religion": { $eq: [] } }).limit(1000);
+  }
       // let totalSurnames = { totalCount:getSurname };
-      _.forEach(getnames, function (value) {
-        if (value.nStatus === "NN") {
-          value.nStatus = "Name New";
-        } else if (value.nStatus === "NE") {
-          value.nStatus = "Name Entry";
-        } else if (value.nStatus === "NV") {
-          value.nStatus = "Name Verified";
-        } else if (value.nStatus === "NI") {
-          value.nStatus = "Name Invalid";
-        } else if (value.nStatus === "NP") {
-          value.nStatus = "Name Published";
-        }
-      });
-      console.log(getnames);
-      if (getnames) {
-        res.status(200).send({ getnames });
-      } else {
-        res.status(404).send({
-          message: "No Data Found!",
-        });
+      _.forEach(getnames, function(value) {
+        if(value.nStatus === "NN"){
+          value.nStatus = "Name New"
+      } else if(value.nStatus === "NE"){
+          value.nStatus = "Name Entry"
+      } else if(value.nStatus === "NV"){
+          value.nStatus = "Name Verified"
+      } else if(value.nStatus === "NI"){
+          value.nStatus = "Name Invalid"
+      } else if(value.nStatus === "NP"){
+          value.nStatus = "Name Published"
       }
-    } else if (
-      options === "Religion" &&
-      status === "Non Master" &&
-      _.isEmpty(name)
-    ) {
-      if (_.isEmpty(name)) {
-        getnames = await namesModel.aggregate([
-          {
-            $unwind: "$religion",
-          },
-          {
-            $lookup: {
-              from: "religions",
-              localField: "religion",
-              foreignField: "name",
-              as: "religion_info",
-            },
-          },
-          {
-            $match: {
-              "religion_info.0": { $exists: false },
-              religion: { $ne: null },
-            },
-          },
-          // {
-          //     $group: {
-          //         _id: "$_id"
-          //     }
-          // },
-          // {
-          //     $lookup:
-          //     {
-          //         from: "names",
-          //         localField: "_id",
-          //         foreignField: "_id",
-          //         as: "finalData"
-          //     }
-          // },
-          // { $unwind: "$finalData" }
-        ]); // let totalSurnames = { totalCount:getSurname };
-        console.log(getnames);
-        _.forEach(getnames, function (value) {
-          if (value.nStatus === "NN") {
-            value.nStatus = "Name New";
-          } else if (value.nStatus === "NE") {
-            value.nStatus = "Name Entry";
-          } else if (value.nStatus === "NV") {
-            value.nStatus = "Name Verified";
-          } else if (value.nStatus === "NI") {
-            value.nStatus = "Name Invalid";
-          } else if (value.nStatus === "NP") {
-            value.nStatus = "Name Published";
-          }
-        });
-        if (getnames) {
-          res.status(200).send({ getnames });
-        } else {
+    });
+      console.log(getnames)
+      if (getnames) {
+          res.status(200).send({getnames})
+      } else {
           res.status(404).send({
-            message: "No Data Found!",
-          });
-        }
-      }
-    } else if (
-      options === "Religion" &&
-      status === "Non Master" &&
-      !_.isEmpty(name)
-    ) {
-      if (name.indexOf("-") > -1) {
-        getnames = await namesModel.aggregate([
+              message: "No Data Found!"
+          })
+  }
+}
+else if (options === "Religion" && status === "Non Master" && _.isEmpty(name)) {
+  if (_.isEmpty(name)) {
+    getnames = await namesModel.aggregate([
           {
-            $unwind: "$religion",
+              $unwind: "$religion"
           },
           {
-            $lookup: {
-              from: "religions",
-              localField: "religion",
-              foreignField: "name",
-              as: "religion_info",
-            },
+              $lookup:
+              {
+                  from: "religions",
+                  localField: "religion",
+                  foreignField: "name",
+                  as: "religion_info"
+              }
           },
           {
             $match: {
-              "religion_info.0": { $exists: false },
-              religion: { $ne: null },
-            },
-          },
-          // {
-          //     $group: {
-          //         _id: "$_id"
-          //     }
-          // },
-          // {
-          //     $lookup:
-          //     {
-          //         from: "names",
-          //         localField: "_id",
-          //         foreignField: "_id",
-          //         as: "finalData"
-          //     }
-          // },
-          // { $unwind: "$finalData" },
-          { $match: { name: { $regex: "^[" + [name] + "]" } } },
-        ]);
-      } else {
-        getnames = await namesModel.aggregate([
-          {
-            $unwind: "$religion",
-          },
-          {
-            $lookup: {
-              from: "religions",
-              localField: "religion",
-              foreignField: "name",
-              as: "religion_info",
-            },
-          },
-          {
-            $match: {
-              "religion_info.0": { $exists: false },
-              religion: { $ne: null },
-            },
-          },
+                "religion_info.0": { $exists: false },"religion": {$ne:null}
+            }
+        },
           // {
           //     $group: {
           //         _id: "$_id"
@@ -1361,55 +1214,147 @@ exports.getNamesFilter = async (req, res) => {
           //     }
           // },
           // { $unwind: "$finalData" }
-        ]);
-      }
+      ]);                // let totalSurnames = { totalCount:getSurname };
+      console.log(getnames)
       _.forEach(getnames, function (value) {
         if (value.nStatus === "NN") {
-          value.nStatus = "Name New";
+            value.nStatus = "Name New"
         } else if (value.nStatus === "NE") {
-          value.nStatus = "Name Entry";
+            value.nStatus = "Name Entry"
         } else if (value.nStatus === "NV") {
-          value.nStatus = "Name Verified";
+            value.nStatus = "Name Verified"
         } else if (value.nStatus === "NI") {
-          value.nStatus = "Name Invalid";
+            value.nStatus = "Name Invalid"
         } else if (value.nStatus === "NP") {
-          value.nStatus = "Name Published";
+            value.nStatus = "Name Published"
         }
-      });
-      console.log(getnames);
+    });
       if (getnames) {
-        res.status(200).send({ getnames });
+          res.status(200).send({ getnames })
       } else {
-        res.status(404).send({
-          message: "No Data Found!",
-        });
-      } // let totalSurnames = { totalCount:getSurname };
-    } else if (
-      options === "religion" &&
-      _.isNull(optionsData) &&
-      status !== "All"
-    ) {
-      getnames = await namesModel
-        .find({
-          $and: [
-            { name: { $regex: name } },
-            { religion: { $exists: true, $ne: [] } },
-          ],
-        })
-        .limit(1000);
-      _.forEach(getnames, function (value) {
-        if (value.nStatus === "NN") {
-          value.nStatus = "Name New";
-        } else if (value.nStatus === "NE") {
-          value.nStatus = "Name Entry";
-        } else if (value.nStatus === "NV") {
-          value.nStatus = "Name Verified";
-        } else if (value.nStatus === "NI") {
-          value.nStatus = "Name Invalid";
-        } else if (value.nStatus === "NP") {
-          value.nStatus = "Name Published";
+          res.status(404).send({
+              message: "No Data Found!"
+          })
+      }
+  }
+}
+else if (options === "Religion" && status === "Non Master" && !_.isEmpty(name)) {
+  if(name.indexOf('-') > -1){
+    getnames = await namesModel.aggregate([
+      {
+          $unwind: "$religion"
+      },
+      {
+          $lookup:
+          {
+              from: "religions",
+              localField: "religion",
+              foreignField: "name",
+              as: "religion_info"
+          }
+      },
+      {
+        $match: {
+            "religion_info.0": { $exists: false },"religion": {$ne:null}
         }
-      });
+    },
+      // {
+      //     $group: {
+      //         _id: "$_id"
+      //     }
+      // },
+      // {
+      //     $lookup:
+      //     {
+      //         from: "names",
+      //         localField: "_id",
+      //         foreignField: "_id",
+      //         as: "finalData"
+      //     }
+      // },
+      // { $unwind: "$finalData" },
+      { $match: { "name": { "$regex": "^[" + [name] + "]" } } }
+  ]); 
+}
+else{
+  getnames = await namesModel.aggregate([
+    {
+        $unwind: "$religion"
+    },
+    {
+        $lookup:
+        {
+            from: "religions",
+            localField: "religion",
+            foreignField: "name",
+            as: "religion_info"
+        }
+    },
+    {
+      $match: {
+          "religion_info.0": { $exists: false },"religion": {$ne:null}
+      }
+  },
+    // {
+    //     $group: {
+    //         _id: "$_id"
+    //     }
+    // },
+    // {
+    //     $lookup:
+    //     {
+    //         from: "names",
+    //         localField: "_id",
+    //         foreignField: "_id",
+    //         as: "finalData"
+    //     }
+    // },
+    // { $unwind: "$finalData" }
+]);  
+}
+  _.forEach(getnames, function (value) {
+    if (value.nStatus === "NN") {
+        value.nStatus = "Name New"
+    } else if (value.nStatus === "NE") {
+        value.nStatus = "Name Entry"
+    } else if (value.nStatus === "NV") {
+        value.nStatus = "Name Verified"
+    } else if (value.nStatus === "NI") {
+        value.nStatus = "Name Invalid"
+    } else if (value.nStatus === "NP") {
+        value.nStatus = "Name Published"
+    }
+});
+console.log(getnames)
+if (getnames) {
+    res.status(200).send({ getnames })
+} else {
+    res.status(404).send({
+        message: "No Data Found!"
+    })
+}            // let totalSurnames = { totalCount:getSurname };
+
+}
+    else if (options === "religion" && _.isNull(optionsData) && status !== "All") {
+      getnames = await namesModel.find({
+        $and: [
+          { name: { $regex: name } },
+          { religion: { $exists: true, $ne: [] } },
+        ],
+      }).limit(1000);
+      _.forEach(getnames, function(value) {
+        if(value.nStatus === "NN"){
+          value.nStatus = "Name New"
+      } else if(value.nStatus === "NE"){
+          value.nStatus = "Name Entry"
+      } else if(value.nStatus === "NV"){
+          value.nStatus = "Name Verified"
+      } else if(value.nStatus === "NI"){
+          value.nStatus = "Name Invalid"
+      } else if(value.nStatus === "NP"){
+          value.nStatus = "Name Published"
+      }
+    });
       if (getnames) {
         res.status(200).send(getnames);
       } else {
@@ -1417,68 +1362,62 @@ exports.getNamesFilter = async (req, res) => {
           message: "No Data Found!",
         });
       }
-    } else if (
+    }
+    else if (
       options === "Religion" &&
       !_.isNull(optionsData) &&
-      !_.isNull(status) &&
-      status !== "All"
+      !_.isNull(status) && status !== "All"
     ) {
       if (!req.body.name) {
-        getnames = await namesModel
-          .find({
-            $and: [{ religion: optionsData }, { nStatus: status }],
+        getnames = await namesModel.find({
+          $and: [{ religion: optionsData }, { nStatus: status }],
+        }).limit(1000);
+        _.forEach(getnames, function(value) {
+          if(value.nStatus === "NN"){
+            value.nStatus = "Name New"
+        } else if(value.nStatus === "NE"){
+            value.nStatus = "Name Entry"
+        } else if(value.nStatus === "NV"){
+            value.nStatus = "Name Verified"
+        } else if(value.nStatus === "NI"){
+            value.nStatus = "Name Invalid"
+        } else if(value.nStatus === "NP"){
+            value.nStatus = "Name Published"
+        }
+      });
+      } 
+      else {
+        if (name.indexOf('-') > -1) {
+          const rangeData = _.split(name, '-')
+          console.log("--",rangeData[0], rangeData[2])
+          getnames = await namesModel.find({$and: [{name: { $regex: "^[" + [name] + "]" }},
+            {religion: optionsData }, { nStatus: status }]
           })
-          .limit(1000);
-        _.forEach(getnames, function (value) {
-          if (value.nStatus === "NN") {
-            value.nStatus = "Name New";
-          } else if (value.nStatus === "NE") {
-            value.nStatus = "Name Entry";
-          } else if (value.nStatus === "NV") {
-            value.nStatus = "Name Verified";
-          } else if (value.nStatus === "NI") {
-            value.nStatus = "Name Invalid";
-          } else if (value.nStatus === "NP") {
-            value.nStatus = "Name Published";
-          }
-        });
-      } else {
-        if (name.indexOf("-") > -1) {
-          const rangeData = _.split(name, "-");
-          console.log("--", rangeData[0], rangeData[2]);
+          // console.log(getnames)
+            res.status(201).send(getnames)
+        } 
+        else{
           getnames = await namesModel.find({
             $and: [
-              { name: { $regex: "^[" + [name] + "]" } },
+              { name: { $regex: name } },
               { religion: optionsData },
               { nStatus: status },
             ],
-          });
-          // console.log(getnames)
-          res.status(201).send(getnames);
-        } else {
-          getnames = await namesModel
-            .find({
-              $and: [
-                { name: { $regex: name } },
-                { religion: optionsData },
-                { nStatus: status },
-              ],
-            })
-            .limit(1000);
-          _.forEach(getnames, function (value) {
-            if (value.nStatus === "NN") {
-              value.nStatus = "Name New";
-            } else if (value.nStatus === "NE") {
-              value.nStatus = "Name Entry";
-            } else if (value.nStatus === "NV") {
-              value.nStatus = "Name Verified";
-            } else if (value.nStatus === "NI") {
-              value.nStatus = "Name Invalid";
-            } else if (value.nStatus === "NP") {
-              value.nStatus = "Name Published";
-            }
-          });
+          }).limit(1000);
+        _.forEach(getnames, function(value) {
+          if(value.nStatus === "NN"){
+            value.nStatus = "Name New"
+        } else if(value.nStatus === "NE"){
+            value.nStatus = "Name Entry"
+        } else if(value.nStatus === "NV"){
+            value.nStatus = "Name Verified"
+        } else if(value.nStatus === "NI"){
+            value.nStatus = "Name Invalid"
+        } else if(value.nStatus === "NP"){
+            value.nStatus = "Name Published"
         }
+      });
+    }
       }
 
       if (getnames) {
@@ -1488,68 +1427,65 @@ exports.getNamesFilter = async (req, res) => {
           message: "No Data Found!",
         });
       }
-    } else if (
+    }
+    else if (
       options === "Religion" &&
       !_.isNull(optionsData) &&
-      !_.isNull(status) &&
-      status === "All"
+      !_.isNull(status) && status === "All"
     ) {
       if (!req.body.name) {
-        getnames = await namesModel
-          .find({
-            $and: [{ religion: optionsData }, { nStatus: { $ne: "NI" } }],
-          })
-          .limit(1000);
-        _.forEach(getnames, function (value) {
-          if (value.nStatus === "NN") {
-            value.nStatus = "Name New";
-          } else if (value.nStatus === "NE") {
-            value.nStatus = "Name Entry";
-          } else if (value.nStatus === "NV") {
-            value.nStatus = "Name Verified";
-          } else if (value.nStatus === "NI") {
-            value.nStatus = "Name Invalid";
-          } else if (value.nStatus === "NP") {
-            value.nStatus = "Name Published";
-          }
-        });
+        getnames = await namesModel.find({
+          $and: [{ religion: optionsData }, { nStatus: { $ne: "NI" } }],
+        }).limit(1000);
+        _.forEach(getnames, function(value) {
+          if(value.nStatus === "NN"){
+            value.nStatus = "Name New"
+        } else if(value.nStatus === "NE"){
+            value.nStatus = "Name Entry"
+        } else if(value.nStatus === "NV"){
+            value.nStatus = "Name Verified"
+        } else if(value.nStatus === "NI"){
+            value.nStatus = "Name Invalid"
+        } else if(value.nStatus === "NP"){
+            value.nStatus = "Name Published"
+        }
+      });
       } else {
-        if (name.indexOf("-") > -1) {
-          const rangeData = _.split(name, "-");
-          console.log("--", rangeData[0], rangeData[2]);
+        if (name.indexOf('-') > -1) {
+          const rangeData = _.split(name, '-')
+          console.log("--",rangeData[0], rangeData[2])
           getnames = await namesModel.find({
             $and: [
-              { name: { $regex: "^[" + [name] + "]" } },
+              {name: { $regex: "^[" + [name] + "]" }},
               { religion: optionsData },
-              { nStatus: { $ne: "NI" } },
-            ],
-          });
-          console.log(getnames);
-          res.status(201).send(getnames);
-        } else {
-          getnames = await namesModel
-            .find({
-              $and: [
-                { name: { $regex: name } },
-                { religion: optionsData },
-                { nStatus: { $ne: "NI" } },
-              ],
-            })
-            .limit(1000);
-          _.forEach(getnames, function (value) {
-            if (value.nStatus === "NN") {
-              value.nStatus = "Name New";
-            } else if (value.nStatus === "NE") {
-              value.nStatus = "Name Entry";
-            } else if (value.nStatus === "NV") {
-              value.nStatus = "Name Verified";
-            } else if (value.nStatus === "NI") {
-              value.nStatus = "Name Invalid";
-            } else if (value.nStatus === "NP") {
-              value.nStatus = "Name Published";
-            }
-          });
+             { nStatus: { $ne: "NI" } },
+           ],
+         })
+          console.log(getnames)
+            res.status(201).send(getnames)
         }
+   else {      
+       getnames = await namesModel.find({
+     $and: [
+      { name: { $regex: name } },
+      { religion: optionsData },
+      { nStatus: { $ne: "NI" } },
+    ],
+  }).limit(1000);
+      _.forEach(getnames, function(value) {
+          if(value.nStatus === "NN"){
+            value.nStatus = "Name New"
+        } else if(value.nStatus === "NE"){
+            value.nStatus = "Name Entry"
+        } else if(value.nStatus === "NV"){
+            value.nStatus = "Name Verified"
+        } else if(value.nStatus === "NI"){
+            value.nStatus = "Name Invalid"
+        } else if(value.nStatus === "NP"){
+            value.nStatus = "Name Published"
+        }
+      });
+      }
       }
 
       if (getnames) {
@@ -1564,303 +1500,177 @@ exports.getNamesFilter = async (req, res) => {
     else if (options === "Gender" && status === "Summary") {
       if (_.isEmpty(name)) {
         getnames = await namesModel.aggregate([
-          { $unwind: "$gender" },
-          { $group: { _id: "$gender", totalCount: { $sum: 1 } } },
-        ]);
-        console.log(getnames);
-        if (getnames) {
-          res.status(200).send([{ option: { name: "gender", getnames } }]);
-        } else {
-          res.status(404).send({
-            message: "No Data Found!",
-          });
-        }
-      }
-    } else if (
-      options === "Gender" &&
-      status === "Exception Report" &&
-      _.isEmpty(name)
-    ) {
-      if (_.isEmpty(name)) {
-        getnames = await namesModel.find({ gender: { $eq: [] } }).limit(1000);
-        // let totalSurnames = { totalCount:getSurname };
-        _.forEach(getnames, function (value) {
-          if (value.nStatus === "NN") {
-            value.nStatus = "Name New";
-          } else if (value.nStatus === "NE") {
-            value.nStatus = "Name Entry";
-          } else if (value.nStatus === "NV") {
-            value.nStatus = "Name Verified";
-          } else if (value.nStatus === "NI") {
-            value.nStatus = "Name Invalid";
-          } else if (value.nStatus === "NP") {
-            value.nStatus = "Name Published";
+          { $unwind: "$gender" }, { $group: { _id: "$gender", totalCount: { $sum: 1 } } }])
+          console.log(getnames)
+          if (getnames) {
+              res.status(200).send([{ option: { "name": "gender", getnames } }])
+          } else {
+              res.status(404).send({
+                  message: "No Data Found!"
+              })
           }
-        });
-        console.log(getnames);
-        if (getnames) {
-          res.status(200).send({ getnames });
-        } else {
-          res.status(404).send({
-            message: "No Data Found!",
-          });
-        }
       }
-    } else if (
-      options === "Gender" &&
-      status === "Exception Report" &&
-      !_.isEmpty(name)
-    ) {
-      if (name.indexOf("-") > -1) {
-        getnames = await namesModel
-          .find({ gender: { $eq: [] }, name: { $regex: "^[" + [name] + "]" } })
-          .limit(1000);
-      } else {
-        getnames = await namesModel.find({ gender: { $eq: [] } }).limit(1000);
-      }
-      // let totalSurnames = { totalCount:getSurname };
-      _.forEach(getnames, function (value) {
-        if (value.nStatus === "NN") {
-          value.nStatus = "Name New";
-        } else if (value.nStatus === "NE") {
-          value.nStatus = "Name Entry";
-        } else if (value.nStatus === "NV") {
-          value.nStatus = "Name Verified";
-        } else if (value.nStatus === "NI") {
-          value.nStatus = "Name Invalid";
-        } else if (value.nStatus === "NP") {
-          value.nStatus = "Name Published";
+  }
+  else if (options === "Gender" && status === "Exception Report" && _.isEmpty(name)) {
+    if (_.isEmpty(name)) {
+      getnames = await namesModel.find({ "gender": { $eq: [] } }).limit(1000);
+        // let totalSurnames = { totalCount:getSurname };
+        _.forEach(getnames, function(value) {
+          if(value.nStatus === "NN"){
+            value.nStatus = "Name New"
+        } else if(value.nStatus === "NE"){
+            value.nStatus = "Name Entry"
+        } else if(value.nStatus === "NV"){
+            value.nStatus = "Name Verified"
+        } else if(value.nStatus === "NI"){
+            value.nStatus = "Name Invalid"
+        } else if(value.nStatus === "NP"){
+            value.nStatus = "Name Published"
         }
       });
-      console.log(getnames);
-      if (getnames) {
-        res.status(200).send({ getnames });
-      } else {
-        res.status(404).send({
-          message: "No Data Found!",
-        });
+        console.log(getnames)
+        if (getnames) {
+            res.status(200).send({getnames})
+        } else {
+            res.status(404).send({
+                message: "No Data Found!"
+            })
+        }
+    }
+}
+else if (options === "Gender" && status === "Exception Report" && !_.isEmpty(name)) {
+ if(name.indexOf('-') > -1){
+  getnames = await namesModel.find({ "gender": { $eq: [] },
+  name: { "$regex": "^[" + [name] + "]" }
+}).limit(1000);
+ }
+ else {
+    getnames = await namesModel.find({ "gender": { $eq: [] } }).limit(1000);
+ }
+      // let totalSurnames = { totalCount:getSurname };
+      _.forEach(getnames, function(value) {
+        if(value.nStatus === "NN"){
+          value.nStatus = "Name New"
+      } else if(value.nStatus === "NE"){
+          value.nStatus = "Name Entry"
+      } else if(value.nStatus === "NV"){
+          value.nStatus = "Name Verified"
+      } else if(value.nStatus === "NI"){
+          value.nStatus = "Name Invalid"
+      } else if(value.nStatus === "NP"){
+          value.nStatus = "Name Published"
       }
-    } else if (
+    });
+      console.log(getnames)
+      if (getnames) {
+          res.status(200).send({getnames})
+      } else {
+          res.status(404).send({
+              message: "No Data Found!"
+          })
+  }
+}
+    else if (
       options === "Gender" &&
       !_.isNull(optionsData) &&
-      !_.isNull(status) &&
-      status !== "All"
+      !_.isNull(status) && status !== "All"
     ) {
       if (!req.body.name && optionsData === "Male") {
-        getnames = await namesModel
-          .find({
+        getnames = await namesModel.find({
+          gender: ["M"],
+          nStatus: status,
+        }).limit(1000);
+        _.forEach(getnames, function(value) {
+          if(value.nStatus === "NN"){
+            value.nStatus = "Name New"
+        } else if(value.nStatus === "NE"){
+            value.nStatus = "Name Entry"
+        } else if(value.nStatus === "NV"){
+            value.nStatus = "Name Verified"
+        } else if(value.nStatus === "NI"){
+            value.nStatus = "Name Invalid"
+        } else if(value.nStatus === "NP"){
+            value.nStatus = "Name Published"
+        }
+      });
+      } else if (!req.body.name && optionsData === "Female") {
+        getnames = await namesModel.find({
+          gender: ["F"],
+          nStatus: status,
+        }).limit(1000);
+        _.forEach(getnames, function(value) {
+          if(value.nStatus === "NN"){
+            value.nStatus = "Name New"
+        } else if(value.nStatus === "NE"){
+            value.nStatus = "Name Entry"
+        } else if(value.nStatus === "NV"){
+            value.nStatus = "Name Verified"
+        } else if(value.nStatus === "NI"){
+            value.nStatus = "Name Invalid"
+        } else if(value.nStatus === "NP"){
+            value.nStatus = "Name Published"
+        }
+      });
+      } else if (!req.body.name && optionsData === "Both") {
+        getnames = await namesModel.find({
+          gender: ["M", "F"],
+          nStatus: status,
+        }).limit(1000);
+        _.forEach(getnames, function(value) {
+          if(value.nStatus === "NN"){
+            value.nStatus = "Name New"
+        } else if(value.nStatus === "NE"){
+            value.nStatus = "Name Entry"
+        } else if(value.nStatus === "NV"){
+            value.nStatus = "Name Verified"
+        } else if(value.nStatus === "NI"){
+            value.nStatus = "Name Invalid"
+        } else if(value.nStatus === "NP"){
+            value.nStatus = "Name Published"
+        }
+      });
+      } else if (req.body.name && optionsData === "Male") {
+        if (name.indexOf('-') > -1) {
+          const rangeData = _.split(name, '-')
+          console.log("--",rangeData[0], rangeData[2])
+          getnames = await namesModel.find({$and: [{name: { $regex: "^[" + [name] + "]" }},
+            {gender: ["M"] }, { nStatus: status }]
+          }).limit(1000);
+          _.forEach(getnames, function(value) {
+            if(value.nStatus === "NN"){
+              value.nStatus = "Name New"
+          } else if(value.nStatus === "NE"){
+              value.nStatus = "Name Entry"
+          } else if(value.nStatus === "NV"){
+              value.nStatus = "Name Verified"
+          } else if(value.nStatus === "NI"){
+              value.nStatus = "Name Invalid"
+          } else if(value.nStatus === "NP"){
+              value.nStatus = "Name Published"
+          }
+        });
+          // console.log(getnames)
+            res.status(201).send(getnames)
+        }
+        else {
+          getnames = await namesModel.find({
+            name: { $regex: name },
             gender: ["M"],
             nStatus: status,
-          })
-          .limit(1000);
-        _.forEach(getnames, function (value) {
-          if (value.nStatus === "NN") {
-            value.nStatus = "Name New";
-          } else if (value.nStatus === "NE") {
-            value.nStatus = "Name Entry";
-          } else if (value.nStatus === "NV") {
-            value.nStatus = "Name Verified";
-          } else if (value.nStatus === "NI") {
-            value.nStatus = "Name Invalid";
-          } else if (value.nStatus === "NP") {
-            value.nStatus = "Name Published";
-          }
-        });
-      } else if (!req.body.name && optionsData === "Female") {
-        getnames = await namesModel
-          .find({
-            gender: ["F"],
-            nStatus: status,
-          })
-          .limit(1000);
-        _.forEach(getnames, function (value) {
-          if (value.nStatus === "NN") {
-            value.nStatus = "Name New";
-          } else if (value.nStatus === "NE") {
-            value.nStatus = "Name Entry";
-          } else if (value.nStatus === "NV") {
-            value.nStatus = "Name Verified";
-          } else if (value.nStatus === "NI") {
-            value.nStatus = "Name Invalid";
-          } else if (value.nStatus === "NP") {
-            value.nStatus = "Name Published";
-          }
-        });
-      } else if (!req.body.name && optionsData === "Both") {
-        getnames = await namesModel
-          .find({
-            gender: ["M", "F"],
-            nStatus: status,
-          })
-          .limit(1000);
-        _.forEach(getnames, function (value) {
-          if (value.nStatus === "NN") {
-            value.nStatus = "Name New";
-          } else if (value.nStatus === "NE") {
-            value.nStatus = "Name Entry";
-          } else if (value.nStatus === "NV") {
-            value.nStatus = "Name Verified";
-          } else if (value.nStatus === "NI") {
-            value.nStatus = "Name Invalid";
-          } else if (value.nStatus === "NP") {
-            value.nStatus = "Name Published";
-          }
-        });
-      } else if (req.body.name && optionsData === "Male") {
-        if (name.indexOf("-") > -1) {
-          const rangeData = _.split(name, "-");
-          console.log("--", rangeData[0], rangeData[2]);
-          getnames = await namesModel
-            .find({
-              $and: [
-                { name: { $regex: "^[" + [name] + "]" } },
-                { gender: ["M"] },
-                { nStatus: status },
-              ],
-            })
-            .limit(1000);
-          _.forEach(getnames, function (value) {
-            if (value.nStatus === "NN") {
-              value.nStatus = "Name New";
-            } else if (value.nStatus === "NE") {
-              value.nStatus = "Name Entry";
-            } else if (value.nStatus === "NV") {
-              value.nStatus = "Name Verified";
-            } else if (value.nStatus === "NI") {
-              value.nStatus = "Name Invalid";
-            } else if (value.nStatus === "NP") {
-              value.nStatus = "Name Published";
-            }
-          });
-          // console.log(getnames)
-          res.status(201).send(getnames);
-        } else {
-          getnames = await namesModel
-            .find({
-              name: { $regex: name },
-              gender: ["M"],
-              nStatus: status,
-            })
-            .limit(1000);
-          _.forEach(getnames, function (value) {
-            if (value.nStatus === "NN") {
-              value.nStatus = "Name New";
-            } else if (value.nStatus === "NE") {
-              value.nStatus = "Name Entry";
-            } else if (value.nStatus === "NV") {
-              value.nStatus = "Name Verified";
-            } else if (value.nStatus === "NI") {
-              value.nStatus = "Name Invalid";
-            } else if (value.nStatus === "NP") {
-              value.nStatus = "Name Published";
-            }
-          });
-          if (getnames) {
-            res.status(200).send(getnames);
-          } else {
-            res.status(404).send({
-              message: "No Data Found!",
-            });
-          }
+          }).limit(1000);
+        _.forEach(getnames, function(value) {
+          if(value.nStatus === "NN"){
+            value.nStatus = "Name New"
+        } else if(value.nStatus === "NE"){
+            value.nStatus = "Name Entry"
+        } else if(value.nStatus === "NV"){
+            value.nStatus = "Name Verified"
+        } else if(value.nStatus === "NI"){
+            value.nStatus = "Name Invalid"
+        } else if(value.nStatus === "NP"){
+            value.nStatus = "Name Published"
         }
-      } else if (req.body.name && optionsData === "Female") {
-        if (name.indexOf("-") > -1) {
-          const rangeData = _.split(name, "-");
-          console.log("--", rangeData[0], rangeData[2]);
-          getnames = await namesModel
-            .find({
-              $and: [
-                { name: { $regex: "^[" + [name] + "]" } },
-                { gender: ["F"] },
-                { nStatus: status },
-              ],
-            })
-            .limit(1000);
-          _.forEach(getnames, function (value) {
-            if (value.nStatus === "NN") {
-              value.nStatus = "Name New";
-            } else if (value.nStatus === "NE") {
-              value.nStatus = "Name Entry";
-            } else if (value.nStatus === "NV") {
-              value.nStatus = "Name Verified";
-            } else if (value.nStatus === "NI") {
-              value.nStatus = "Name Invalid";
-            } else if (value.nStatus === "NP") {
-              value.nStatus = "Name Published";
-            }
-          });
-          // console.log(getnames)
-          res.status(201).send(getnames);
-        } else {
-          getnames = await namesModel
-            .find({
-              name: { $regex: name },
-              gender: ["F"],
-              nStatus: status,
-            })
-            .limit(1000);
-          _.forEach(getnames, function (value) {
-            if (value.nStatus === "NN") {
-              value.nStatus = "Name New";
-            } else if (value.nStatus === "NE") {
-              value.nStatus = "Name Entry";
-            } else if (value.nStatus === "NV") {
-              value.nStatus = "Name Verified";
-            } else if (value.nStatus === "NI") {
-              value.nStatus = "Name Invalid";
-            } else if (value.nStatus === "NP") {
-              value.nStatus = "Name Published";
-            }
-          });
-        }
-      } else if (req.body.name && optionsData === "Both") {
-        if (name.indexOf("-") > -1) {
-          const rangeData = _.split(name, "-");
-          console.log("--", rangeData[0], rangeData[2]);
-          getnames = await namesModel
-            .find({
-              $and: [
-                { name: { $regex: "^[" + [name] + "]" } },
-                { gender: ["M", "F"] },
-                { nStatus: status },
-              ],
-            })
-            .limit(1000);
-        }
-        _.forEach(getnames, function (value) {
-          if (value.nStatus === "NN") {
-            value.nStatus = "Name New";
-          } else if (value.nStatus === "NE") {
-            value.nStatus = "Name Entry";
-          } else if (value.nStatus === "NV") {
-            value.nStatus = "Name Verified";
-          } else if (value.nStatus === "NI") {
-            value.nStatus = "Name Invalid";
-          } else if (value.nStatus === "NP") {
-            value.nStatus = "Name Published";
-          }
-        });
-      } else {
-        getnames = await namesModel
-          .find({
-            gender: { $nq: null },
-            name: { $regex: name },
-          })
-          .limit(1000);
-        _.forEach(getnames, function (value) {
-          if (value.nStatus === "NN") {
-            value.nStatus = "Name New";
-          } else if (value.nStatus === "NE") {
-            value.nStatus = "Name Entry";
-          } else if (value.nStatus === "NV") {
-            value.nStatus = "Name Verified";
-          } else if (value.nStatus === "NI") {
-            value.nStatus = "Name Invalid";
-          } else if (value.nStatus === "NP") {
-            value.nStatus = "Name Published";
-          }
-        });
-      }
+      });
       if (getnames) {
         res.status(200).send(getnames);
       } else {
@@ -1868,216 +1678,285 @@ exports.getNamesFilter = async (req, res) => {
           message: "No Data Found!",
         });
       }
-    } else if (
-      options === "Gender" &&
-      !_.isNull(optionsData) &&
-      !_.isNull(status) &&
-      status === "All"
-    ) {
-      if (!req.body.name && optionsData === "Male") {
-        getnames = await namesModel
-          .find({
-            gender: ["M"],
-            nStatus: { $ne: "NI" },
-          })
-          .limit(1000);
-        _.forEach(getnames, function (value) {
-          if (value.nStatus === "NN") {
-            value.nStatus = "Name New";
-          } else if (value.nStatus === "NE") {
-            value.nStatus = "Name Entry";
-          } else if (value.nStatus === "NV") {
-            value.nStatus = "Name Verified";
-          } else if (value.nStatus === "NI") {
-            value.nStatus = "Name Invalid";
-          } else if (value.nStatus === "NP") {
-            value.nStatus = "Name Published";
-          }
-        });
-      } else if (!req.body.name && optionsData === "Female") {
-        getnames = await namesModel
-          .find({
-            gender: ["F"],
-            nStatus: { $ne: "NI" },
-          })
-          .limit(1000);
-        _.forEach(getnames, function (value) {
-          if (value.nStatus === "NN") {
-            value.nStatus = "Name New";
-          } else if (value.nStatus === "NE") {
-            value.nStatus = "Name Entry";
-          } else if (value.nStatus === "NV") {
-            value.nStatus = "Name Verified";
-          } else if (value.nStatus === "NI") {
-            value.nStatus = "Name Invalid";
-          } else if (value.nStatus === "NP") {
-            value.nStatus = "Name Published";
-          }
-        });
-      } else if (!req.body.name && optionsData === "Both") {
-        getnames = await namesModel
-          .find({
-            gender: ["M", "F"],
-            nStatus: { $ne: "NI" },
-          })
-          .limit(1000);
-        _.forEach(getnames, function (value) {
-          if (value.nStatus === "NN") {
-            value.nStatus = "Name New";
-          } else if (value.nStatus === "NE") {
-            value.nStatus = "Name Entry";
-          } else if (value.nStatus === "NV") {
-            value.nStatus = "Name Verified";
-          } else if (value.nStatus === "NI") {
-            value.nStatus = "Name Invalid";
-          } else if (value.nStatus === "NP") {
-            value.nStatus = "Name Published";
-          }
-        });
-      } else if (req.body.name && optionsData === "Male") {
-        if (name.indexOf("-") > -1) {
-          const rangeData = _.split(name, "-");
-          console.log("--", rangeData[0], rangeData[2]);
-          getnames = await namesModel
-            .find({
-              $and: [
-                { name: { $regex: "^[" + [name] + "]" } },
-                { gender: ["M"] },
-                { nStatus: { $ne: "NI" } },
-              ],
-            })
-            .limit(1000);
-          _.forEach(getnames, function (value) {
-            if (value.nStatus === "NN") {
-              value.nStatus = "Name New";
-            } else if (value.nStatus === "NE") {
-              value.nStatus = "Name Entry";
-            } else if (value.nStatus === "NV") {
-              value.nStatus = "Name Verified";
-            } else if (value.nStatus === "NI") {
-              value.nStatus = "Name Invalid";
-            } else if (value.nStatus === "NP") {
-              value.nStatus = "Name Published";
-            }
-          });
-          // console.log(getnames)
-          // res.status(201).send(getnames)
-        } else {
-          getnames = await namesModel
-            .find({
-              name: { $regex: name },
-              gender: ["M"],
-              nStatus: { $ne: "NI" },
-            })
-            .limit(1000);
-          _.forEach(getnames, function (value) {
-            if (value.nStatus === "NN") {
-              value.nStatus = "Name New";
-            } else if (value.nStatus === "NE") {
-              value.nStatus = "Name Entry";
-            } else if (value.nStatus === "NV") {
-              value.nStatus = "Name Verified";
-            } else if (value.nStatus === "NI") {
-              value.nStatus = "Name Invalid";
-            } else if (value.nStatus === "NP") {
-              value.nStatus = "Name Published";
-            }
-          });
-        }
+    }
       } else if (req.body.name && optionsData === "Female") {
-        if (name.indexOf("-") > -1) {
-          const rangeData = _.split(name, "-");
-          console.log("--", rangeData[0], rangeData[2]);
-          getnames = await namesModel.find({
-            $and: [
-              { name: { $regex: "^[" + [name] + "]" } },
-              { gender: ["F"] },
-              { nStatus: { $ne: "NI" } },
-            ],
-          });
-          _.forEach(getnames, function (value) {
-            if (value.nStatus === "NN") {
-              value.nStatus = "Name New";
-            } else if (value.nStatus === "NE") {
-              value.nStatus = "Name Entry";
-            } else if (value.nStatus === "NV") {
-              value.nStatus = "Name Verified";
-            } else if (value.nStatus === "NI") {
-              value.nStatus = "Name Invalid";
-            } else if (value.nStatus === "NP") {
-              value.nStatus = "Name Published";
-            }
-          });
+        if (name.indexOf('-') > -1) {
+          const rangeData = _.split(name, '-')
+          console.log("--",rangeData[0], rangeData[2])
+          getnames = await namesModel.find({$and: [{name: { $regex: "^[" + [name] + "]" }},
+            {gender: ["F"] }, { nStatus: status }]
+          }).limit(1000);
+          _.forEach(getnames, function(value) {
+            if(value.nStatus === "NN"){
+              value.nStatus = "Name New"
+          } else if(value.nStatus === "NE"){
+              value.nStatus = "Name Entry"
+          } else if(value.nStatus === "NV"){
+              value.nStatus = "Name Verified"
+          } else if(value.nStatus === "NI"){
+              value.nStatus = "Name Invalid"
+          } else if(value.nStatus === "NP"){
+              value.nStatus = "Name Published"
+          }
+        });
           // console.log(getnames)
-        } else {
-          getnames = await namesModel
-            .find({
-              name: { $regex: name },
-              gender: ["F"],
-              nStatus: { $ne: "NI" },
-            })
-            .limit(1000);
-          _.forEach(getnames, function (value) {
-            if (value.nStatus === "NN") {
-              value.nStatus = "Name New";
-            } else if (value.nStatus === "NE") {
-              value.nStatus = "Name Entry";
-            } else if (value.nStatus === "NV") {
-              value.nStatus = "Name Verified";
-            } else if (value.nStatus === "NI") {
-              value.nStatus = "Name Invalid";
-            } else if (value.nStatus === "NP") {
-              value.nStatus = "Name Published";
-            }
-          });
+            res.status(201).send(getnames)
+        }
+        else{
+          getnames = await namesModel.find({
+            name: { $regex: name },
+            gender: ["F"],
+            nStatus: status,
+          }).limit(1000);
+          _.forEach(getnames, function(value) {
+            if(value.nStatus === "NN"){
+              value.nStatus = "Name New"
+          } else if(value.nStatus === "NE"){
+              value.nStatus = "Name Entry"
+          } else if(value.nStatus === "NV"){
+              value.nStatus = "Name Verified"
+          } else if(value.nStatus === "NI"){
+              value.nStatus = "Name Invalid"
+          } else if(value.nStatus === "NP"){
+              value.nStatus = "Name Published"
+          }
+        });
         }
       } else if (req.body.name && optionsData === "Both") {
-        if (name.indexOf("-") > -1) {
-          const rangeData = _.split(name, "-");
-          console.log("--", rangeData[0], rangeData[2]);
-          getnames = await namesModel.find({
-            $and: [
-              { name: { $regex: "^[" + [name] + "]" } },
-              { gender: ["M", "F"] },
-              { nStatus: { $ne: "NI" } },
-            ],
-          });
-          _.forEach(getnames, function (value) {
-            if (value.nStatus === "NN") {
-              value.nStatus = "Name New";
-            } else if (value.nStatus === "NE") {
-              value.nStatus = "Name Entry";
-            } else if (value.nStatus === "NV") {
-              value.nStatus = "Name Verified";
-            } else if (value.nStatus === "NI") {
-              value.nStatus = "Name Invalid";
-            } else if (value.nStatus === "NP") {
-              value.nStatus = "Name Published";
-            }
-          });
-        } else {
-          getnames = await namesModel
-            .find({
-              gender: ["M", "F"],
-              nStatus: { $ne: "NI" },
-              name: { $regex: name },
-            })
-            .limit(1000);
-          _.forEach(getnames, function (value) {
-            if (value.nStatus === "NN") {
-              value.nStatus = "Name New";
-            } else if (value.nStatus === "NE") {
-              value.nStatus = "Name Entry";
-            } else if (value.nStatus === "NV") {
-              value.nStatus = "Name Verified";
-            } else if (value.nStatus === "NI") {
-              value.nStatus = "Name Invalid";
-            } else if (value.nStatus === "NP") {
-              value.nStatus = "Name Published";
-            }
-          });
+        if (name.indexOf('-') > -1) {
+          const rangeData = _.split(name, '-')
+          console.log("--",rangeData[0], rangeData[2])
+          getnames = await namesModel.find({$and: [{name: { $regex: "^[" + [name] + "]" }},
+            {gender: ["M", "F"] }, { nStatus: status }]
+          }).limit(1000);
         }
+          _.forEach(getnames, function(value) {
+            if(value.nStatus === "NN"){
+              value.nStatus = "Name New"
+          } else if(value.nStatus === "NE"){
+              value.nStatus = "Name Entry"
+          } else if(value.nStatus === "NV"){
+              value.nStatus = "Name Verified"
+          } else if(value.nStatus === "NI"){
+              value.nStatus = "Name Invalid"
+          } else if(value.nStatus === "NP"){
+              value.nStatus = "Name Published"
+          }
+        });
+      } 
+      else {
+        getnames = await namesModel.find({
+          gender: { $nq: null },
+          name: { $regex: name },
+        }).limit(1000);
+        _.forEach(getnames, function(value) {
+          if(value.nStatus === "NN"){
+            value.nStatus = "Name New"
+        } else if(value.nStatus === "NE"){
+            value.nStatus = "Name Entry"
+        } else if(value.nStatus === "NV"){
+            value.nStatus = "Name Verified"
+        } else if(value.nStatus === "NI"){
+            value.nStatus = "Name Invalid"
+        } else if(value.nStatus === "NP"){
+            value.nStatus = "Name Published"
+        }
+      });
+    }
+      if (getnames) {
+        res.status(200).send(getnames);
+      } else {
+        res.status(404).send({
+          message: "No Data Found!",
+        });
       }
+    }
+    else if (
+      options === "Gender" &&
+      !_.isNull(optionsData) &&
+      !_.isNull(status) && status === "All"
+    ) {
+      if (!req.body.name && optionsData === "Male") {
+        getnames = await namesModel.find({
+          gender: ["M"],
+          nStatus: { $ne: "NI" },
+        }).limit(1000);
+        _.forEach(getnames, function(value) {
+          if(value.nStatus === "NN"){
+            value.nStatus = "Name New"
+        } else if(value.nStatus === "NE"){
+            value.nStatus = "Name Entry"
+        } else if(value.nStatus === "NV"){
+            value.nStatus = "Name Verified"
+        } else if(value.nStatus === "NI"){
+            value.nStatus = "Name Invalid"
+        } else if(value.nStatus === "NP"){
+            value.nStatus = "Name Published"
+        }
+      });
+      } else if (!req.body.name && optionsData === "Female") {
+        getnames = await namesModel.find({
+          gender: ["F"],
+          nStatus: { $ne: "NI" },
+        }).limit(1000);
+        _.forEach(getnames, function(value) {
+          if(value.nStatus === "NN"){
+            value.nStatus = "Name New"
+        } else if(value.nStatus === "NE"){
+            value.nStatus = "Name Entry"
+        } else if(value.nStatus === "NV"){
+            value.nStatus = "Name Verified"
+        } else if(value.nStatus === "NI"){
+            value.nStatus = "Name Invalid"
+        } else if(value.nStatus === "NP"){
+            value.nStatus = "Name Published"
+        }
+      });
+      } else if (!req.body.name && optionsData === "Both") {
+        getnames = await namesModel.find({
+          gender: ["M", "F"],
+          nStatus: { $ne: "NI" },
+        }).limit(1000);
+        _.forEach(getnames, function(value) {
+          if(value.nStatus === "NN"){
+            value.nStatus = "Name New"
+        } else if(value.nStatus === "NE"){
+            value.nStatus = "Name Entry"
+        } else if(value.nStatus === "NV"){
+            value.nStatus = "Name Verified"
+        } else if(value.nStatus === "NI"){
+            value.nStatus = "Name Invalid"
+        } else if(value.nStatus === "NP"){
+            value.nStatus = "Name Published"
+        }
+      });
+      } else if (req.body.name && optionsData === "Male") {
+        if (name.indexOf('-') > -1) {
+          const rangeData = _.split(name, '-')
+          console.log("--",rangeData[0], rangeData[2])
+          getnames = await namesModel.find({$and: [{name: { $regex: "^[" + [name] + "]" }},
+            {gender: ["M"] }, { nStatus: {$ne: "NI"} }]
+          }).limit(1000);
+          _.forEach(getnames, function(value) {
+            if(value.nStatus === "NN"){
+              value.nStatus = "Name New"
+          } else if(value.nStatus === "NE"){
+              value.nStatus = "Name Entry"
+          } else if(value.nStatus === "NV"){
+              value.nStatus = "Name Verified"
+          } else if(value.nStatus === "NI"){
+              value.nStatus = "Name Invalid"
+          } else if(value.nStatus === "NP"){
+              value.nStatus = "Name Published"
+          }
+        });
+          // console.log(getnames)
+            // res.status(201).send(getnames)
+        }
+        else{
+        getnames = await namesModel.find({
+          name: { $regex: name },
+          gender: ["M"],
+          nStatus: { $ne: "NI" },
+        }).limit(1000);
+        _.forEach(getnames, function(value) {
+          if(value.nStatus === "NN"){
+            value.nStatus = "Name New"
+        } else if(value.nStatus === "NE"){
+            value.nStatus = "Name Entry"
+        } else if(value.nStatus === "NV"){
+            value.nStatus = "Name Verified"
+        } else if(value.nStatus === "NI"){
+            value.nStatus = "Name Invalid"
+        } else if(value.nStatus === "NP"){
+            value.nStatus = "Name Published"
+        }
+      });
+    }
+      } else if (req.body.name && optionsData === "Female") {
+        if (name.indexOf('-') > -1) {
+          const rangeData = _.split(name, '-')
+          console.log("--",rangeData[0], rangeData[2])
+          getnames = await namesModel.find({$and: [{name: { $regex: "^[" + [name] + "]" }},
+            {gender: ["F"] }, { nStatus: {$ne: "NI"} }]
+          })
+          _.forEach(getnames, function(value) {
+            if(value.nStatus === "NN"){
+              value.nStatus = "Name New"
+          } else if(value.nStatus === "NE"){
+              value.nStatus = "Name Entry"
+          } else if(value.nStatus === "NV"){
+              value.nStatus = "Name Verified"
+          } else if(value.nStatus === "NI"){
+              value.nStatus = "Name Invalid"
+          } else if(value.nStatus === "NP"){
+              value.nStatus = "Name Published"
+          }
+        });
+          // console.log(getnames)
+        }
+        else {
+        getnames = await namesModel.find({
+          name: { $regex: name },
+          gender: ["F"],
+          nStatus: { $ne: "NI" },
+        }).limit(1000);
+        _.forEach(getnames, function(value) {
+          if(value.nStatus === "NN"){
+            value.nStatus = "Name New"
+        } else if(value.nStatus === "NE"){
+            value.nStatus = "Name Entry"
+        } else if(value.nStatus === "NV"){
+            value.nStatus = "Name Verified"
+        } else if(value.nStatus === "NI"){
+            value.nStatus = "Name Invalid"
+        } else if(value.nStatus === "NP"){
+            value.nStatus = "Name Published"
+        }
+      });
+    }
+      } else if (req.body.name && optionsData === "Both") {
+        if (name.indexOf('-') > -1) {
+          const rangeData = _.split(name, '-')
+          console.log("--",rangeData[0], rangeData[2])
+          getnames = await namesModel.find({$and: [{name: { $regex: "^[" + [name] + "]" }},
+            {gender: ["M","F"] }, { nStatus: {$ne: "NI"} }]
+          })
+          _.forEach(getnames, function(value) {
+            if(value.nStatus === "NN"){
+              value.nStatus = "Name New"
+          } else if(value.nStatus === "NE"){
+              value.nStatus = "Name Entry"
+          } else if(value.nStatus === "NV"){
+              value.nStatus = "Name Verified"
+          } else if(value.nStatus === "NI"){
+              value.nStatus = "Name Invalid"
+          } else if(value.nStatus === "NP"){
+              value.nStatus = "Name Published"
+          }
+        });
+      }
+        else {
+        getnames = await namesModel.find({
+          gender: ["M", "F"],
+          nStatus: { $ne: "NI" },
+          name:{$regex:name}
+        }).limit(1000);
+        _.forEach(getnames, function(value) {
+          if(value.nStatus === "NN"){
+            value.nStatus = "Name New"
+        } else if(value.nStatus === "NE"){
+            value.nStatus = "Name Entry"
+        } else if(value.nStatus === "NV"){
+            value.nStatus = "Name Verified"
+        } else if(value.nStatus === "NI"){
+            value.nStatus = "Name Invalid"
+        } else if(value.nStatus === "NP"){
+            value.nStatus = "Name Published"
+        }
+      });
+      } 
+    }
       if (getnames) {
         res.status(200).send(getnames);
       } else {
@@ -2088,126 +1967,114 @@ exports.getNamesFilter = async (req, res) => {
     }
 
     //************for all filters****************** */
-    else if (options === "All" && status === "Summary") {
+   else if (options === "All" && status === "Summary") {
       if (_.isEmpty(name)) {
-        const gender = await namesModel.count({ gender: { $ne: [] } });
-        // aggregate([
-        //   { $unwind: "$gender" }, { $group: { _id: "$gender", totalCount: { $sum: 1 } } }])
-        const tags = await namesModel.count({ tags: { $ne: [] } });
-        // aggregate([
-        //   { $unwind: "$tags" }, { $group: { _id: "$tags", totalCount: { $sum: 1 } } }])
-        const religion = await namesModel.count({ religion: { $ne: [] } });
-        // aggregate([
-        //   { $unwind: "$religion" }, { $group: { _id: "$religion", totalCount: { $sum: 1 } } }])
-        const translations = await namesModel.count({
-          translations: { $ne: [] },
-        });
-        // aggregate([
-        //   {
-        //     $facet: {
-        //       "Hindi": [
-        //         { $match: { "translations.lang": { $eq: "HI" } } },
-        //         { "$sortByCount": "$Hindi" }
-
-        //       ],
-        //       "Gujarati": [
-        //         { $match: { "translations.lang": { $eq: "GU" } } },
-        //         { "$sortByCount": "$Gujarati" }
-
-        //       ],
-        //       "Marathi": [
-        //         { $match: { "translations.lang": { $eq: "MR" } } },
-        //         { "$sortByCount": "$Marathi" }
-
-        //       ],
-        //       "Punjabi": [
-        //         { $match: { "translations.lang": { $eq: "PA" } } },
-        //         { "$sortByCount": "$Punjabi" }
-
-        //       ],
-        //       "SINDHI": [
-        //         { $match: { "translations.lang": { $eq: "SD" } } },
-        //         { "$sortByCount": "$SINDHI" }
-
-        //       ],
-        //       "TAMIL": [
-        //         { $match: { "translations.lang": { $eq: "TA" } } },
-        //         { "$sortByCount": "$TAMIL" }
-
-        //       ],
-        //       "BENGALI": [
-        //         { $match: { "translations.lang": { $eq: "BN" } } },
-        //         { "$sortByCount": "$TAMIL" }
-
-        //       ],
-        //       "TELGU": [
-        //         { $match: { "translations.lang": { $eq: "TLG" } } },
-        //         { "$sortByCount": "$TELGU" }
-
-        //       ],
-        //     }
-        //   }
-        // ])
-        if (gender) {
-          res
-            .status(200)
-            .send([
-              { option: { name: "gender", gender } },
-              { option: { name: "tags", tags } },
-              { option: { name: "religion", religion } },
-              { option: { name: "translations", translations } },
-            ]);
-        } else {
-          res.status(404).send({
-            message: "No Data Found!",
-          });
-        }
+          const gender = await namesModel.count({gender:{$ne:[]}})
+          // aggregate([
+          //   { $unwind: "$gender" }, { $group: { _id: "$gender", totalCount: { $sum: 1 } } }])
+          const tags = await namesModel.count({tags:{$ne:[]}})
+          // aggregate([
+          //   { $unwind: "$tags" }, { $group: { _id: "$tags", totalCount: { $sum: 1 } } }])
+          const religion = await namesModel.count({religion:{$ne:[]}})
+          // aggregate([
+          //   { $unwind: "$religion" }, { $group: { _id: "$religion", totalCount: { $sum: 1 } } }])
+          const translations = await namesModel.count({translations:{$ne:[]}})
+          // aggregate([
+          //   {
+          //     $facet: {
+          //       "Hindi": [
+          //         { $match: { "translations.lang": { $eq: "HI" } } },
+          //         { "$sortByCount": "$Hindi" }
+  
+          //       ],
+          //       "Gujarati": [
+          //         { $match: { "translations.lang": { $eq: "GU" } } },
+          //         { "$sortByCount": "$Gujarati" }
+  
+          //       ],
+          //       "Marathi": [
+          //         { $match: { "translations.lang": { $eq: "MR" } } },
+          //         { "$sortByCount": "$Marathi" }
+  
+          //       ],
+          //       "Punjabi": [
+          //         { $match: { "translations.lang": { $eq: "PA" } } },
+          //         { "$sortByCount": "$Punjabi" }
+  
+          //       ],
+          //       "SINDHI": [
+          //         { $match: { "translations.lang": { $eq: "SD" } } },
+          //         { "$sortByCount": "$SINDHI" }
+  
+          //       ],
+          //       "TAMIL": [
+          //         { $match: { "translations.lang": { $eq: "TA" } } },
+          //         { "$sortByCount": "$TAMIL" }
+  
+          //       ],
+          //       "BENGALI": [
+          //         { $match: { "translations.lang": { $eq: "BN" } } },
+          //         { "$sortByCount": "$TAMIL" }
+  
+          //       ],
+          //       "TELGU": [
+          //         { $match: { "translations.lang": { $eq: "TLG" } } },
+          //         { "$sortByCount": "$TELGU" }
+  
+          //       ],
+          //     }
+          //   }
+          // ])
+          if (gender) {
+              res.status(200).send([
+                {option: { "name": "gender", gender}},
+                {option: { "name": "tags", tags}},
+                {option: { "name": "religion", religion}},
+                {option: { "name": "translations", translations}}
+              ])
+          } else {
+              res.status(404).send({
+                  message: "No Data Found!"
+              })
+          }
       }
-    } else if (
-      options === "All" &&
-      !_.isNull(optionsData) &&
-      !_.isNull(status) &&
-      status !== "All"
-    ) {
+  }
+    else if (options === "All" && !_.isNull(optionsData) && !_.isNull(status) && status !== "All") {
       if (!req.body.name) {
-        getnames = await namesModel
-          .find({
-            nStatus: status,
-          })
-          .limit(1000);
-        _.forEach(getnames, function (value) {
-          if (value.nStatus === "NN") {
-            value.nStatus = "Name New";
-          } else if (value.nStatus === "NE") {
-            value.nStatus = "Name Entry";
-          } else if (value.nStatus === "NV") {
-            value.nStatus = "Name Verified";
-          } else if (value.nStatus === "NI") {
-            value.nStatus = "Name Invalid";
-          } else if (value.nStatus === "NP") {
-            value.nStatus = "Name Published";
-          }
-        });
+        getnames = await namesModel.find({
+          nStatus: status,
+        }).limit(1000);
+        _.forEach(getnames, function(value) {
+          if(value.nStatus === "NN"){
+            value.nStatus = "Name New"
+        } else if(value.nStatus === "NE"){
+            value.nStatus = "Name Entry"
+        } else if(value.nStatus === "NV"){
+            value.nStatus = "Name Verified"
+        } else if(value.nStatus === "NI"){
+            value.nStatus = "Name Invalid"
+        } else if(value.nStatus === "NP"){
+            value.nStatus = "Name Published"
+        }
+      });
       } else {
-        getnames = await namesModel
-          .find({
-            name: { $regex: name },
-            nStatus: status,
-          })
-          .limit(1000);
-        _.forEach(getnames, function (value) {
-          if (value.nStatus === "NN") {
-            value.nStatus = "Name New";
-          } else if (value.nStatus === "NE") {
-            value.nStatus = "Name Entry";
-          } else if (value.nStatus === "NV") {
-            value.nStatus = "Name Verified";
-          } else if (value.nStatus === "NI") {
-            value.nStatus = "Name Invalid";
-          } else if (value.nStatus === "NP") {
-            value.nStatus = "Name Published";
-          }
-        });
+        getnames = await namesModel.find({
+          name: { $regex: name },
+          nStatus: status,
+        }).limit(1000);
+        _.forEach(getnames, function(value) {
+          if(value.nStatus === "NN"){
+            value.nStatus = "Name New"
+        } else if(value.nStatus === "NE"){
+            value.nStatus = "Name Entry"
+        } else if(value.nStatus === "NV"){
+            value.nStatus = "Name Verified"
+        } else if(value.nStatus === "NI"){
+            value.nStatus = "Name Invalid"
+        } else if(value.nStatus === "NP"){
+            value.nStatus = "Name Published"
+        }
+      });
       }
 
       if (getnames) {
@@ -2217,73 +2084,64 @@ exports.getNamesFilter = async (req, res) => {
           message: "No Data Found!",
         });
       }
-    } else if (
-      options === "All" &&
-      !_.isNull(optionsData) &&
-      !_.isNull(status) &&
-      status === "All"
-    ) {
+    }
+    else if (options === "All" && !_.isNull(optionsData) && !_.isNull(status) && status === "All") {
       if (!req.body.name) {
-        getnames = await namesModel
-          .find({
+        getnames = await namesModel.find({
+          nStatus: { $ne: "NI" },
+        }).limit(1000);
+        _.forEach(getnames, function(value) {
+          if(value.nStatus === "NN"){
+            value.nStatus = "Name New"
+        } else if(value.nStatus === "NE"){
+            value.nStatus = "Name Entry"
+        } else if(value.nStatus === "NV"){
+            value.nStatus = "Name Verified"
+        } else if(value.nStatus === "NI"){
+            value.nStatus = "Name Invalid"
+        } else if(value.nStatus === "NP"){
+            value.nStatus = "Name Published"
+        }
+      });
+      } else {
+        if(name.indexOf('-') > -1){
+          getnames = await namesModel.find({
+            name: { "$regex": "^[" + [name] + "]" },
             nStatus: { $ne: "NI" },
-          })
-          .limit(1000);
-        _.forEach(getnames, function (value) {
-          if (value.nStatus === "NN") {
-            value.nStatus = "Name New";
-          } else if (value.nStatus === "NE") {
-            value.nStatus = "Name Entry";
-          } else if (value.nStatus === "NV") {
-            value.nStatus = "Name Verified";
-          } else if (value.nStatus === "NI") {
-            value.nStatus = "Name Invalid";
-          } else if (value.nStatus === "NP") {
-            value.nStatus = "Name Published";
+          }).limit(1000);
+          _.forEach(getnames, function(value) {
+            if(value.nStatus === "NN"){
+              value.nStatus = "Name New"
+          } else if(value.nStatus === "NE"){
+              value.nStatus = "Name Entry"
+          } else if(value.nStatus === "NV"){
+              value.nStatus = "Name Verified"
+          } else if(value.nStatus === "NI"){
+              value.nStatus = "Name Invalid"
+          } else if(value.nStatus === "NP"){
+              value.nStatus = "Name Published"
           }
         });
-      } else {
-        if (name.indexOf("-") > -1) {
-          getnames = await namesModel
-            .find({
-              name: { $regex: "^[" + [name] + "]" },
-              nStatus: { $ne: "NI" },
-            })
-            .limit(1000);
-          _.forEach(getnames, function (value) {
-            if (value.nStatus === "NN") {
-              value.nStatus = "Name New";
-            } else if (value.nStatus === "NE") {
-              value.nStatus = "Name Entry";
-            } else if (value.nStatus === "NV") {
-              value.nStatus = "Name Verified";
-            } else if (value.nStatus === "NI") {
-              value.nStatus = "Name Invalid";
-            } else if (value.nStatus === "NP") {
-              value.nStatus = "Name Published";
-            }
-          });
-        } else {
-          getnames = await namesModel
-            .find({
-              name: { $regex: name },
-              nStatus: { $ne: "NI" },
-            })
-            .limit(1000);
-          _.forEach(getnames, function (value) {
-            if (value.nStatus === "NN") {
-              value.nStatus = "Name New";
-            } else if (value.nStatus === "NE") {
-              value.nStatus = "Name Entry";
-            } else if (value.nStatus === "NV") {
-              value.nStatus = "Name Verified";
-            } else if (value.nStatus === "NI") {
-              value.nStatus = "Name Invalid";
-            } else if (value.nStatus === "NP") {
-              value.nStatus = "Name Published";
-            }
-          });
         }
+        else {
+        getnames = await namesModel.find({
+          name: { $regex: name },
+          nStatus: { $ne: "NI" },
+        }).limit(1000);
+        _.forEach(getnames, function(value) {
+          if(value.nStatus === "NN"){
+            value.nStatus = "Name New"
+        } else if(value.nStatus === "NE"){
+            value.nStatus = "Name Entry"
+        } else if(value.nStatus === "NV"){
+            value.nStatus = "Name Verified"
+        } else if(value.nStatus === "NI"){
+            value.nStatus = "Name Invalid"
+        } else if(value.nStatus === "NP"){
+            value.nStatus = "Name Published"
+        }
+      });
+    }
       }
 
       if (getnames) {
@@ -2301,45 +2159,41 @@ exports.getNamesFilter = async (req, res) => {
       _.isEmpty(status) &&
       _.isEmpty(optionsData)
     ) {
-      if (name.indexOf("-") > -1) {
-        getnames = await namesModel
-          .find({
-            name: { $regex: "^[" + [name] + "]" },
-          })
-          .limit(1000);
-        _.forEach(getnames, function (value) {
-          if (value.nStatus === "NN") {
-            value.nStatus = "Name New";
-          } else if (value.nStatus === "NE") {
-            value.nStatus = "Name Entry";
-          } else if (value.nStatus === "NV") {
-            value.nStatus = "Name Verified";
-          } else if (value.nStatus === "NI") {
-            value.nStatus = "Name Invalid";
-          } else if (value.nStatus === "NP") {
-            value.nStatus = "Name Published";
-          }
-        });
+      if(name.indexOf('-') > -1){
+        getnames = await namesModel.find({
+          name: { "$regex": "^[" + [name] + "]" },
+        }).limit(1000);
+        _.forEach(getnames, function(value) {
+          if(value.nStatus === "NN"){
+            value.nStatus = "Name New"
+        } else if(value.nStatus === "NE"){
+            value.nStatus = "Name Entry"
+        } else if(value.nStatus === "NV"){
+            value.nStatus = "Name Verified"
+        } else if(value.nStatus === "NI"){
+            value.nStatus = "Name Invalid"
+        } else if(value.nStatus === "NP"){
+            value.nStatus = "Name Published"
+        }
+      });
       } else {
-        getnames = await namesModel
-          .find({
-            name: { $regex: name },
-          })
-          .limit(1000);
-        _.forEach(getnames, function (value) {
-          if (value.nStatus === "NN") {
-            value.nStatus = "Name New";
-          } else if (value.nStatus === "NE") {
-            value.nStatus = "Name Entry";
-          } else if (value.nStatus === "NV") {
-            value.nStatus = "Name Verified";
-          } else if (value.nStatus === "NI") {
-            value.nStatus = "Name Invalid";
-          } else if (value.nStatus === "NP") {
-            value.nStatus = "Name Published";
-          }
-        });
+      getnames = await namesModel.find({
+        name: { $regex: name },
+      }).limit(1000);
+      _.forEach(getnames, function(value) {
+        if(value.nStatus === "NN"){
+          value.nStatus = "Name New"
+      } else if(value.nStatus === "NE"){
+          value.nStatus = "Name Entry"
+      } else if(value.nStatus === "NV"){
+          value.nStatus = "Name Verified"
+      } else if(value.nStatus === "NI"){
+          value.nStatus = "Name Invalid"
+      } else if(value.nStatus === "NP"){
+          value.nStatus = "Name Published"
       }
+    });
+  }
       if (getnames) {
         res.status(200).send(getnames);
       } else {
@@ -2597,22 +2451,22 @@ exports.getAllTags = async (req, res) => {
   }
 };
 exports.updateNameStatusVerified = async (req, res) => {
-  try {
-    const _id = req.body._id;
-    const nStatus = req.body.nStatus;
-    console.log("_id:", _id);
-    const name = await namesModel.update(
-      { _id: _id },
-      { $set: { nStatus: nStatus } }
-    );
-    if (name) {
-      res.status(200).send({ message: "Name Status Updated" });
-    } else {
-      res.status(404).send({
-        message: "Data found!",
-      });
+    try {
+      const _id = req.body._id;
+      const nStatus = req.body.nStatus;
+      console.log("_id:", _id);
+      const name = await namesModel.update(
+        { _id: _id },
+        { $set: { nStatus: nStatus } }
+      );
+      if (name) {
+        res.status(200).send({ message: "Name Status Updated" });
+      } else {
+        res.status(404).send({
+          message: "Data found!",
+        });
+      }
+    } catch (e) {
+      res.status(400).json(e.message);
     }
-  } catch (e) {
-    res.status(400).json(e.message);
-  }
-};
+  };

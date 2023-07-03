@@ -103,7 +103,7 @@ function getSignedUrl(data) {
   var key = urlParse.parse(data).pathname;
   key = key.replace("/", "");
   var url = s3.getSignedUrl("getObject", {
-    Bucket: process.env.AWS_BUCKET_NAME,
+    Bucket: "kutumbh-repository",
     Key: key,
     // Key: 'general/1601018967848.png',
     // ResponseContentDisposition: contentDisposition,

@@ -92,7 +92,7 @@ function getSignedUrl(data) {
   var key = urlParse.parse(data).pathname;
   key = key.replace("/", "");
   var url = s3.getSignedUrl("getObject", {
-    Bucket: process.env.AWS_BUCKET_NAME,
+    Bucket: "kutumbh-repository",
     Key: key,
     // Key: 'general/1601018967848.png',
     // ResponseContentDisposition: contentDisposition,
@@ -714,29 +714,30 @@ async function updateSurname(downloadNewName, language, startDate, endDate) {
 
 exports.searchSurnameByCategory = async (req, res) => {
   try {
+
     category = req.params.category;
     const surnameCategory = await filesModel.aggregate([
       {
         $match: {
-          category: category,
-        },
+          "category": category
+        }
       },
       {
         $lookup: {
-          from: "persons", // person table name
-          localField: "_id", // name of files table field
+          from: "persons",       // person table name
+          localField: "_id",   // name of files table field
           foreignField: "fileId", // name of files table field
-          as: "inventory_data", // alias for person table
-        },
+          as: "inventory_data"         // alias for person table
+        }
       },
       { $unwind: "$inventory_data" },
       {
         $project: {
           "inventory_data.lastName": 1,
-        },
-      },
+        }
+      }
     ]);
-    res.status(200).send(surnameCategory);
+    res.status(200).send(surnameCategory)
   } catch (e) {
     res.status(400).send(e.toString());
   }

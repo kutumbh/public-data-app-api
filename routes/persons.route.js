@@ -10,7 +10,6 @@ router.post(
 );
 router.get(
   "/persons/getAllPersons/:fileId",
-  authMiddleware.Validate,
   personsController.getAllPersons
 );
 router.put(

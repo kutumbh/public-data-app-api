@@ -1,9 +1,9 @@
 var config = {};
 config.aws = {};
-config.aws.region = 'ap-south-1';
+config.aws.region = process.env.AWS_REGION;
 config.aws.cognito = {
-    pool_id: 'ap-south-1_LjvCbOKWj',
-    client_id: '72it72fcuromo3o55f7u9o8uld'
+    pool_id: process.env.AWS_POOL_ID,
+    client_id: process.env.AWS_CLIENT_ID
 };
 
 module.exports = config;

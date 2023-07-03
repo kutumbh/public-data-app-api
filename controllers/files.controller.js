@@ -3,8 +3,8 @@ const userModel = require("../models/user.model");
 const logModel = require("../models/log.model");
 const personsModel = require("../models/reposPersons.model");
 const namesModel = require("../models/name.model");
-const regionalSurnameHindi = require("../models/regionalSurname.model");
-const regionalSurnameGujrati = require("../models/regionalSurnameGuj.model");
+const regionalSurnameHindi = require("../models/regionalSurname.model")
+const regionalSurnameGujrati = require("../models/regionalSurnameGuj.model")
 const _ = require("lodash");
 const mongoose = require("mongoose");
 const fileSourceModel = require("../models/fileSource.model");
@@ -17,27 +17,29 @@ const path = require("path");
 const urlParse = require("url");
 
 AWS.config.update({
+
   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
 
   accessKeyId: process.env.AWS_ACCESS_KEY_ID,
 
   region: process.env.AWS_REGION,
-});
-exports.createDataregional = async ({ body }, res) => {
+
+})
+exports.createDataregional= async ({ body }, res) => {
   try {
-    const getSurnameType = new regionalSurnameGujrati(body);
-    if (getSurnameType) {
-      await getSurnameType.save();
-      res.status(201).send(getSurnameType);
-    } else {
-      res.status(404).send({
-        message: "Data found!",
-      });
-    }
+      const getSurnameType = new regionalSurnameGujrati(body)
+      if (getSurnameType) {
+          await getSurnameType.save()
+          res.status(201).send(getSurnameType)
+      } else {
+          res.status(404).send({
+              message: 'Data found!'
+          })
+      }
   } catch (e) {
-    res.status(400).send(e);
+      res.status(400).send(e)
   }
-};
+}
 // const ObjectsToCsv = require('objects-to-csv');
 
 exports.getNameLocation = async (req, res) => {
@@ -58,13 +60,15 @@ exports.getNameLocation = async (req, res) => {
   //connect to mongo DB
   const connectToDB = async () => {
     if (conn == null) {
-      conn = mongoose.createConnection(process.env.MONGODB_URL, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-        bufferCommands: false, // Disable mongoose buffering
-        serverSelectionTimeoutMS: 5000,
-        useCreateIndex: true,
-      });
+      conn = mongoose.createConnection(process.env.MONGODB_URL,
+        {
+          useNewUrlParser: true,
+          useUnifiedTopology: true,
+          bufferCommands: false, // Disable mongoose buffering
+          serverSelectionTimeoutMS: 5000,
+          useCreateIndex: true,
+        }
+      );
       // `await`ing connection after assigning to the `conn` variable
       // to avoid multiple function calls creating new connections
       await conn;
@@ -601,12 +605,13 @@ exports.getSurnameLocation = async (req, res) => {
   const connectToDB = async () => {
     if (conn == null) {
       conn = mongoose.createConnection(process.env.MONGODB_URL, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-        bufferCommands: false, // Disable mongoose buffering
-        serverSelectionTimeoutMS: 5000,
-        useCreateIndex: true,
-      });
+          useNewUrlParser: true,
+          useUnifiedTopology: true,
+          bufferCommands: false, // Disable mongoose buffering
+          serverSelectionTimeoutMS: 5000,
+          useCreateIndex: true,
+        }
+      );
       // `await`ing connection after assigning to the `conn` variable
       // to avoid multiple function calls creating new connections
       await conn;
@@ -1384,6 +1389,7 @@ exports.getSurnameLocation = async (req, res) => {
                 nameObj.language == "PA" ||
                 nameObj.language == "TA" ||
                 nameObj.language == "SD"
+
               ) {
                 if (nameObj.translations == null || !nameObj.translations) {
                   console.log("translation is null");
@@ -2376,18 +2382,12 @@ exports.validateNamesAndSurnamesDownloadForMoreOptions = async (req, res) => {
       NamesArray = await pmkName(startDate, endDate, downloadNewName);
     } else if (downloadNewName === "DNS") {
       NamesArray = await pmkSurname(startDate, endDate, downloadNewName);
-    } else if (downloadNewName === "DRS" && language === "HI") {
-      NamesArray = await downloadRegionalSurnameHindi(
-        startDate,
-        endDate,
-        downloadNewName
-      );
-    } else if (downloadNewName === "DRS" && language === "GU") {
-      NamesArray = await downloadRegionalSurnameGujrati(
-        startDate,
-        endDate,
-        downloadNewName
-      );
+    }
+    else if (downloadNewName === "DRS" && language === "HI") {
+      NamesArray = await downloadRegionalSurnameHindi(startDate, endDate, downloadNewName);
+    }
+    else if (downloadNewName === "DRS" && language === "GU") {
+      NamesArray = await downloadRegionalSurnameGujrati(startDate, endDate, downloadNewName);
     }
     if (NamesArray.length) {
       res.status(200).send({
@@ -2543,11 +2543,7 @@ async function pmkSurname(startDate, endDate, downloadNewName) {
 }
 
 // regionalSurname Hindi
-async function downloadRegionalSurnameHindi(
-  startDate,
-  endDate,
-  downloadNewName
-) {
+async function downloadRegionalSurnameHindi(startDate, endDate, downloadNewName) {
   try {
     const lastNameData = await regionalSurnameHindi.aggregate([
       {
@@ -2569,17 +2565,17 @@ async function downloadRegionalSurnameHindi(
       { $sort: { lastName: 1 } },
       {
         $match: {
-          $expr: {
-            $eq: [{ $size: "$inventory_docs" }, 0],
-          },
-        },
-      },
+            $expr: {
+                $eq: [ { "$size": "$inventory_docs" }, 0 ]
+            }
+        }
+    },
       {
         $project: {
           _id: 1,
           fileId: 1,
           lastName: 1,
-          regionalLastName: 1,
+          regionalLastName:1
         },
       },
     ]);
@@ -2607,11 +2603,7 @@ async function downloadRegionalSurnameHindi(
   }
 }
 // regionalSurname Gujrati
-async function downloadRegionalSurnameGujrati(
-  startDate,
-  endDate,
-  downloadNewName
-) {
+async function downloadRegionalSurnameGujrati(startDate, endDate, downloadNewName) {
   try {
     const lastNameData = await regionalSurnameGujrati.aggregate([
       {
@@ -2631,19 +2623,19 @@ async function downloadRegionalSurnameGujrati(
         },
       },
       { $sort: { lastName: 1 } },
-      {
+     {
         $match: {
-          $expr: {
-            $eq: [{ $size: "$inventory_docs" }, 0],
-          },
-        },
-      },
+            $expr: {
+                $eq: [ { "$size": "$inventory_docs" }, 0 ]
+            }
+        }
+    },
       {
         $project: {
           _id: 1,
           fileId: 1,
           lastName: 1,
-          regionalLastName: 1,
+          regionalLastName:1
         },
       },
     ]);
@@ -2673,20 +2665,23 @@ async function downloadRegionalSurnameGujrati(
 // ===========================S3 Pdf Download========
 exports.downloadS3PDF = async (req, res) => {
   try {
-    var fileName = req.body.fileName;
-    var assembly = req.body.assembly.split(" ").join("");
-    var district = req.body.district;
-    var statename;
-    var pdfName = req.body.pdfName;
-    console.log(assembly);
-
-    if (assembly.indexOf(" ") >= 0) {
-      assembly = assembly.trim();
+    var fileName = req.body.fileName
+    var assembly = req.body.assembly.split(" ").join("")
+    var district = req.body.district
+    var statename
+    var pdfName = req.body.pdfName
+    console.log(assembly)
+    
+   
+    if(assembly.indexOf(' ') >= 0){
+      assembly = assembly.trim()
       // assembly=assembly.replace(/%20/g, " ");
-      console.log("assembly contain space", assembly);
+      console.log("assembly contain space",assembly)
     }
-
+    
+    
     function splitStr(str) {
+
       // Function to split string
       var string = str.split(" ");
 
@@ -2699,36 +2694,23 @@ exports.downloadS3PDF = async (req, res) => {
 
     // Function call
     splitStr(str);
-    console.log(stateName);
-    console.log(pdfName);
+    console.log(stateName)
+    console.log(pdfName)
 
-    if (_.isEmpty(district)) {
-      var keyURLGener =
-        process.env.AWS_BUCKET_ELECTORAL_PDF_FILE_URL +
-        stateName +
-        "/" +
-        assembly +
-        "/" +
-        pdfName;
-      console.log("keyURL--> ", typeof keyURLGener);
-      console.log(keyURLGener);
-    } else {
-      var keyURLGener =
-        process.env.AWS_BUCKET_ELECTORAL_PDF_FILE_URL +
-        stateName +
-        "/" +
-        district +
-        "/" +
-        assembly +
-        "/" +
-        pdfName;
-      console.log("keyURL--> ", typeof keyURLGener);
-      console.log(keyURLGener);
+    if(_.isEmpty(district)){
+      var keyURLGener = 'https://electoral-pdf-files.s3.ap-south-1.amazonaws.com/' + stateName + "/" + assembly + "/" + pdfName
+      console.log("keyURL--> ", typeof keyURLGener)
+      console.log(keyURLGener)
+    }else{
+      var keyURLGener = 'https://electoral-pdf-files.s3.ap-south-1.amazonaws.com/' + stateName + "/"+district+ "/" + assembly + "/" + pdfName
+      console.log("keyURL--> ", typeof keyURLGener)
+      console.log(keyURLGener)
     }
+    
 
-    console.log("Trying to download file", pdfName);
-    keyUrl = getSignedUrl(keyURLGener);
-    console.log("PDFURL", keyUrl);
+    console.log('Trying to download file', pdfName);
+    keyUrl = getSignedUrl(keyURLGener)
+    console.log("PDFURL", keyUrl)
     return res.json({ imageUrl: keyUrl });
   } catch (e) {
     res.status(400).json(e.message);
@@ -2740,11 +2722,12 @@ function getSignedUrl(data) {
   var key = urlParse.parse(data).pathname;
   key = key.replace("/", "");
   var url = s3.getSignedUrl("getObject", {
-    Bucket: process.env.AWS_BUCKET_NAME_PDF,
+    Bucket: "electoral-pdf-files",
     Key: key,
     // Key: 'general/1601018967848.png',
     // ResponseContentDisposition: contentDisposition,
     Expires: 7200, //2 hours
   });
   return url;
+  
 }

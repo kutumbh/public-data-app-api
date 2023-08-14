@@ -35,6 +35,7 @@ const religion = require("./routes/religion.route");
 const kuldevta = require("./routes/kuldevta.route");
 const surnameType = require("./routes/surnameType.route");
 const script = require("./routes/script.route");
+const searchData = require("./routes/searchData.route");
 
 const dam = require("./dam/dam.route");
 // Import API Routes
@@ -87,6 +88,7 @@ app.use(kuldevta);
 app.use(surnameType);
 app.use(script);
 app.use(dam);
+app.use(searchData);
 
 app.use(
   cors({

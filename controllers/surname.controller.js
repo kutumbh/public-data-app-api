@@ -503,16 +503,12 @@ exports.getSurnameFilter = async (req, res) => {
                 })
                 _.forEach(getSurname, function (value) {
                     if (value.sStatus === "SN") {
-                        value.sStatus = "Surname New"
-                    } else if (value.sStatus === "SE") {
-                        value.sStatus = "Surname Entry"
+                        value.sStatus = "New"
+                    } else if (value.sStatus === "SS") {
+                        value.sStatus = "Submitted"
                     } else if (value.sStatus === "SV") {
-                        value.sStatus = "Surname Verified"
-                    } else if (value.sStatus === "SI") {
-                        value.sStatus = "Surname Invalid"
-                    } else if (value.sStatus === "SP") {
-                        value.sStatus = "Surname Published"
-                    }
+                        value.sStatus = "To be Verified"
+                    } 
                 });
             } else {
                 if (surname.indexOf('-') > -1) {
@@ -529,16 +525,12 @@ exports.getSurnameFilter = async (req, res) => {
                 }
                 _.forEach(getSurname, function (value) {
                     if (value.sStatus === "SN") {
-                        value.sStatus = "Surname New"
-                    } else if (value.sStatus === "SE") {
-                        value.sStatus = "Surname Entry"
+                        value.sStatus = "New"
+                    } else if (value.sStatus === "SS") {
+                        value.sStatus = "Submitted"
                     } else if (value.sStatus === "SV") {
-                        value.sStatus = "Surname Verified"
-                    } else if (value.sStatus === "SI") {
-                        value.sStatus = "Surname Invalid"
-                    } else if (value.sStatus === "SP") {
-                        value.sStatus = "Surname Published"
-                    }
+                        value.sStatus = "To be Verified"
+                    } 
                 });
 
             }
@@ -553,48 +545,37 @@ exports.getSurnameFilter = async (req, res) => {
         }
         else if (options === "All" && status === "All") {
             if (!req.body.surname) {
-                getSurname = await surnamesModel.find({
-                    "sStatus": { $ne: "SI" }
-                }).limit(1000)
+                getSurname = await surnamesModel.find().limit(1000)
                 _.forEach(getSurname, function (value) {
                     if (value.sStatus === "SN") {
-                        value.sStatus = "Surname New"
-                    } else if (value.sStatus === "SE") {
-                        value.sStatus = "Surname Entry"
+                        value.sStatus = "New"
+                    } else if (value.sStatus === "SS") {
+                        value.sStatus = "Submitted"
                     } else if (value.sStatus === "SV") {
-                        value.sStatus = "Surname Verified"
-                    } else if (value.sStatus === "SI") {
-                        value.sStatus = "Surname Invalid"
-                    } else if (value.sStatus === "SP") {
-                        value.sStatus = "Surname Published"
-                    }
+                        value.sStatus = "To be Verified"
+                    } 
                 });
             }
             else {
                 if (surname.indexOf('-') > -1) {
                     getSurname = await surnamesModel.find({
                         "surname": { "$regex": "^[" + [surname] + "]" },
-                        "sStatus": { $ne: "SI" }
                     }).limit(1000)
                 }
                 else {
                     getSurname = await surnamesModel.find({
                         "surname": { "$regex": surname },
-                        "sStatus": { $ne: "SI" }
+                        "sStatus": { }
                     }).limit(1000)
                 }
                 _.forEach(getSurname, function (value) {
                     if (value.sStatus === "SN") {
-                        value.sStatus = "Surname New"
-                    } else if (value.sStatus === "SE") {
-                        value.sStatus = "Surname Entry"
+                        value.sStatus = "New"
+                    } else if (value.sStatus === "SS") {
+                        value.sStatus = "Submitted"
                     } else if (value.sStatus === "SV") {
-                        value.sStatus = "Surname Verified"
-                    } else if (value.sStatus === "SI") {
-                        value.sStatus = "Surname Invalid"
-                    } else if (value.sStatus === "SP") {
-                        value.sStatus = "Surname Published"
-                    }
+                        value.sStatus = "To be Verified"
+                    } 
                 });
             }
             if (getSurname) {
@@ -617,16 +598,12 @@ exports.getSurnameFilter = async (req, res) => {
                 }).limit(100)
                 _.forEach(getSurname, function (value) {
                     if (value.sStatus === "SN") {
-                        value.sStatus = "Surname New"
-                    } else if (value.sStatus === "SE") {
-                        value.sStatus = "Surname Entry"
+                        value.sStatus = "New"
+                    } else if (value.sStatus === "SS") {
+                        value.sStatus = "Submitted"
                     } else if (value.sStatus === "SV") {
-                        value.sStatus = "Surname Verified"
-                    } else if (value.sStatus === "SI") {
-                        value.sStatus = "Surname Invalid"
-                    } else if (value.sStatus === "SP") {
-                        value.sStatus = "Surname Published"
-                    }
+                        value.sStatus = "To be Verified"
+                    } 
                 });
             } else {
                 if (surname.indexOf('-') > -1) {
@@ -639,16 +616,12 @@ exports.getSurnameFilter = async (req, res) => {
                     }).limit(1000)
                     _.forEach(getSurname, function (value) {
                         if (value.sStatus === "SN") {
-                            value.sStatus = "Surname New"
-                        } else if (value.sStatus === "SE") {
-                            value.sStatus = "Surname Entry"
+                            value.sStatus = "New"
+                        } else if (value.sStatus === "SS") {
+                            value.sStatus = "Submitted"
                         } else if (value.sStatus === "SV") {
-                            value.sStatus = "Surname Verified"
-                        } else if (value.sStatus === "SI") {
-                            value.sStatus = "Surname Invalid"
-                        } else if (value.sStatus === "SP") {
-                            value.sStatus = "Surname Published"
-                        }
+                            value.sStatus = "To be Verified"
+                        } 
                     });
                 } else {
                     getSurname = await surnamesModel.find({
@@ -660,16 +633,12 @@ exports.getSurnameFilter = async (req, res) => {
                     }).limit(1000)
                     _.forEach(getSurname, function (value) {
                         if (value.sStatus === "SN") {
-                            value.sStatus = "Surname New"
-                        } else if (value.sStatus === "SE") {
-                            value.sStatus = "Surname Entry"
+                            value.sStatus = "New"
+                        } else if (value.sStatus === "SS") {
+                            value.sStatus = "Submitted"
                         } else if (value.sStatus === "SV") {
-                            value.sStatus = "Surname Verified"
-                        } else if (value.sStatus === "SI") {
-                            value.sStatus = "Surname Invalid"
-                        } else if (value.sStatus === "SP") {
-                            value.sStatus = "Surname Published"
-                        }
+                            value.sStatus = "To be Verified"
+                        } 
                     });
                 }
             }
@@ -702,16 +671,12 @@ exports.getSurnameFilter = async (req, res) => {
                 getSurname = await surnamesModel.find({ "script": { $eq: [] } })
                 _.forEach(getSurname, function (value) {
                     if (value.sStatus === "SN") {
-                        value.sStatus = "Surname New"
-                    } else if (value.sStatus === "SE") {
-                        value.sStatus = "Surname Entry"
+                        value.sStatus = "New"
+                    } else if (value.sStatus === "SS") {
+                        value.sStatus = "Submitted"
                     } else if (value.sStatus === "SV") {
-                        value.sStatus = "Surname Verified"
-                    } else if (value.sStatus === "SI") {
-                        value.sStatus = "Surname Invalid"
-                    } else if (value.sStatus === "SP") {
-                        value.sStatus = "Surname Published"
-                    }
+                        value.sStatus = "To be Verified"
+                    } 
                 });
                 // let totalSurnames = { totalCount:getSurname };
                 console.log(getSurname)
@@ -736,16 +701,12 @@ exports.getSurnameFilter = async (req, res) => {
             }
             _.forEach(getSurname, function (value) {
                 if (value.sStatus === "SN") {
-                    value.sStatus = "Surname New"
-                } else if (value.sStatus === "SE") {
-                    value.sStatus = "Surname Entry"
+                    value.sStatus = "New"
+                } else if (value.sStatus === "SS") {
+                    value.sStatus = "Submitted"
                 } else if (value.sStatus === "SV") {
-                    value.sStatus = "Surname Verified"
-                } else if (value.sStatus === "SI") {
-                    value.sStatus = "Surname Invalid"
-                } else if (value.sStatus === "SP") {
-                    value.sStatus = "Surname Published"
-                }
+                    value.sStatus = "To be Verified"
+                } 
             });
             // let totalSurnames = { totalCount:getSurname };
             console.log(getSurname)
@@ -793,16 +754,12 @@ exports.getSurnameFilter = async (req, res) => {
             console.log(getSurname)
             _.forEach(getSurname, function (value) {
                 if (value.sStatus === "SN") {
-                    value.sStatus = "Surname New"
-                } else if (value.sStatus === "SE") {
-                    value.sStatus = "Surname Entry"
+                    value.sStatus = "New"
+                } else if (value.sStatus === "SS") {
+                    value.sStatus = "Submitted"
                 } else if (value.sStatus === "SV") {
-                    value.sStatus = "Surname Verified"
-                } else if (value.sStatus === "SI") {
-                    value.sStatus = "Surname Invalid"
-                } else if (value.sStatus === "SP") {
-                    value.sStatus = "Surname Published"
-                }
+                    value.sStatus = "To be Verified"
+                } 
             });
             if (getSurname) {
                 res.status(200).send(getSurname)
@@ -886,16 +843,12 @@ exports.getSurnameFilter = async (req, res) => {
             }
             _.forEach(getSurname, function (value) {
                 if (value.sStatus === "SN") {
-                    value.sStatus = "Surname New"
-                } else if (value.sStatus === "SE") {
-                    value.sStatus = "Surname Entry"
+                    value.sStatus = "New"
+                } else if (value.sStatus === "SS") {
+                    value.sStatus = "Submitted"
                 } else if (value.sStatus === "SV") {
-                    value.sStatus = "Surname Verified"
-                } else if (value.sStatus === "SI") {
-                    value.sStatus = "Surname Invalid"
-                } else if (value.sStatus === "SP") {
-                    value.sStatus = "Surname Published"
-                }
+                    value.sStatus = "To be Verified"
+                } 
             });
             console.log(getSurname)
             if (getSurname) {
@@ -918,16 +871,12 @@ exports.getSurnameFilter = async (req, res) => {
                 }).limit(1000)
                 _.forEach(getSurname, function (value) {
                     if (value.sStatus === "SN") {
-                        value.sStatus = "Surname New"
-                    } else if (value.sStatus === "SE") {
-                        value.sStatus = "Surname Entry"
+                        value.sStatus = "New"
+                    } else if (value.sStatus === "SS") {
+                        value.sStatus = "Submitted"
                     } else if (value.sStatus === "SV") {
-                        value.sStatus = "Surname Verified"
-                    } else if (value.sStatus === "SI") {
-                        value.sStatus = "Surname Invalid"
-                    } else if (value.sStatus === "SP") {
-                        value.sStatus = "Surname Published"
-                    }
+                        value.sStatus = "To be Verified"
+                    } 
                 });
             } else {
                 if (surname.indexOf('-') > -1) {
@@ -940,16 +889,12 @@ exports.getSurnameFilter = async (req, res) => {
                     }).limit(1000)
                     _.forEach(getSurname, function (value) {
                         if (value.sStatus === "SN") {
-                            value.sStatus = "Surname New"
-                        } else if (value.sStatus === "SE") {
-                            value.sStatus = "Surname Entry"
+                            value.sStatus = "New"
+                        } else if (value.sStatus === "SS") {
+                            value.sStatus = "Submitted"
                         } else if (value.sStatus === "SV") {
-                            value.sStatus = "Surname Verified"
-                        } else if (value.sStatus === "SI") {
-                            value.sStatus = "Surname Invalid"
-                        } else if (value.sStatus === "SP") {
-                            value.sStatus = "Surname Published"
-                        }
+                            value.sStatus = "To be Verified"
+                        } 
                     });
                 }
                 else {
@@ -962,16 +907,12 @@ exports.getSurnameFilter = async (req, res) => {
                     }).limit(1000)
                     _.forEach(getSurname, function (value) {
                         if (value.sStatus === "SN") {
-                            value.sStatus = "Surname New"
-                        } else if (value.sStatus === "SE") {
-                            value.sStatus = "Surname Entry"
+                            value.sStatus = "New"
+                        } else if (value.sStatus === "SS") {
+                            value.sStatus = "Submitted"
                         } else if (value.sStatus === "SV") {
-                            value.sStatus = "Surname Verified"
-                        } else if (value.sStatus === "SI") {
-                            value.sStatus = "Surname Invalid"
-                        } else if (value.sStatus === "SP") {
-                            value.sStatus = "Surname Published"
-                        }
+                            value.sStatus = "To be Verified"
+                        } 
                     });
                 }
             }
@@ -1005,16 +946,12 @@ exports.getSurnameFilter = async (req, res) => {
                 // let totalSurnames = { totalCount:getSurname };
                 _.forEach(getSurname, function (value) {
                     if (value.sStatus === "SN") {
-                        value.sStatus = "Surname New"
-                    } else if (value.sStatus === "SE") {
-                        value.sStatus = "Surname Entry"
+                        value.sStatus = "New"
+                    } else if (value.sStatus === "SS") {
+                        value.sStatus = "Submitted"
                     } else if (value.sStatus === "SV") {
-                        value.sStatus = "Surname Verified"
-                    } else if (value.sStatus === "SI") {
-                        value.sStatus = "Surname Invalid"
-                    } else if (value.sStatus === "SP") {
-                        value.sStatus = "Surname Published"
-                    }
+                        value.sStatus = "To be Verified"
+                    } 
                 });
                 console.log(getSurname)
                 if (getSurname) {
@@ -1037,16 +974,12 @@ exports.getSurnameFilter = async (req, res) => {
             }
             _.forEach(getSurname, function (value) {
                 if (value.sStatus === "SN") {
-                    value.sStatus = "Surname New"
-                } else if (value.sStatus === "SE") {
-                    value.sStatus = "Surname Entry"
+                    value.sStatus = "New"
+                } else if (value.sStatus === "SS") {
+                    value.sStatus = "Submitted"
                 } else if (value.sStatus === "SV") {
-                    value.sStatus = "Surname Verified"
-                } else if (value.sStatus === "SI") {
-                    value.sStatus = "Surname Invalid"
-                } else if (value.sStatus === "SP") {
-                    value.sStatus = "Surname Published"
-                }
+                    value.sStatus = "To be Verified"
+                } 
             });
             console.log(getSurname)
             if (getSurname) {
@@ -1095,16 +1028,12 @@ exports.getSurnameFilter = async (req, res) => {
             console.log(getSurname)
             _.forEach(getSurname, function (value) {
                 if (value.sStatus === "SN") {
-                    value.sStatus = "Surname New"
-                } else if (value.sStatus === "SE") {
-                    value.sStatus = "Surname Entry"
+                    value.sStatus = "New"
+                } else if (value.sStatus === "SS") {
+                    value.sStatus = "Submitted"
                 } else if (value.sStatus === "SV") {
-                    value.sStatus = "Surname Verified"
-                } else if (value.sStatus === "SI") {
-                    value.sStatus = "Surname Invalid"
-                } else if (value.sStatus === "SP") {
-                    value.sStatus = "Surname Published"
-                }
+                    value.sStatus = "To be Verified"
+                } 
             });
             if (getSurname) {
                 res.status(200).send(getSurname)
@@ -1154,16 +1083,12 @@ exports.getSurnameFilter = async (req, res) => {
                 console.log(getSurname)
                 _.forEach(getSurname, function (value) {
                     if (value.sStatus === "SN") {
-                        value.sStatus = "Surname New"
-                    } else if (value.sStatus === "SE") {
-                        value.sStatus = "Surname Entry"
+                        value.sStatus = "New"
+                    } else if (value.sStatus === "SS") {
+                        value.sStatus = "Submitted"
                     } else if (value.sStatus === "SV") {
-                        value.sStatus = "Surname Verified"
-                    } else if (value.sStatus === "SI") {
-                        value.sStatus = "Surname Invalid"
-                    } else if (value.sStatus === "SP") {
-                        value.sStatus = "Surname Published"
-                    }
+                        value.sStatus = "To be Verified"
+                    } 
                 });
                 if (getSurname) {
                     res.status(200).send(getSurname)
@@ -1212,16 +1137,12 @@ exports.getSurnameFilter = async (req, res) => {
             }
             _.forEach(getSurname, function (value) {
                 if (value.sStatus === "SN") {
-                    value.sStatus = "Surname New"
-                } else if (value.sStatus === "SE") {
-                    value.sStatus = "Surname Entry"
+                    value.sStatus = "New"
+                } else if (value.sStatus === "SS") {
+                    value.sStatus = "Submitted"
                 } else if (value.sStatus === "SV") {
-                    value.sStatus = "Surname Verified"
-                } else if (value.sStatus === "SI") {
-                    value.sStatus = "Surname Invalid"
-                } else if (value.sStatus === "SP") {
-                    value.sStatus = "Surname Published"
-                }
+                    value.sStatus = "To be Verified"
+                } 
             });
             if (getSurname) {
                 res.status(200).send(getSurname)
@@ -1243,16 +1164,12 @@ exports.getSurnameFilter = async (req, res) => {
                 }).limit(1000)
                 _.forEach(getSurname, function (value) {
                     if (value.sStatus === "SN") {
-                        value.sStatus = "Surname New"
-                    } else if (value.sStatus === "SE") {
-                        value.sStatus = "Surname Entry"
+                        value.sStatus = "New"
+                    } else if (value.sStatus === "SS") {
+                        value.sStatus = "Submitted"
                     } else if (value.sStatus === "SV") {
-                        value.sStatus = "Surname Verified"
-                    } else if (value.sStatus === "SI") {
-                        value.sStatus = "Surname Invalid"
-                    } else if (value.sStatus === "SP") {
-                        value.sStatus = "Surname Published"
-                    }
+                        value.sStatus = "To be Verified"
+                    } 
                 });
             } else {
                 if (surname.indexOf('-') > -1) {
@@ -1265,16 +1182,12 @@ exports.getSurnameFilter = async (req, res) => {
                     }).limit(100)
                     _.forEach(getSurname, function (value) {
                         if (value.sStatus === "SN") {
-                            value.sStatus = "Surname New"
-                        } else if (value.sStatus === "SE") {
-                            value.sStatus = "Surname Entry"
+                            value.sStatus = "New"
+                        } else if (value.sStatus === "SS") {
+                            value.sStatus = "Submitted"
                         } else if (value.sStatus === "SV") {
-                            value.sStatus = "Surname Verified"
-                        } else if (value.sStatus === "SI") {
-                            value.sStatus = "Surname Invalid"
-                        } else if (value.sStatus === "SP") {
-                            value.sStatus = "Surname Published"
-                        }
+                            value.sStatus = "To be Verified"
+                        } 
                     });
                 }
                 else {
@@ -1287,16 +1200,12 @@ exports.getSurnameFilter = async (req, res) => {
                     }).limit(100)
                     _.forEach(getSurname, function (value) {
                         if (value.sStatus === "SN") {
-                            value.sStatus = "Surname New"
-                        } else if (value.sStatus === "SE") {
-                            value.sStatus = "Surname Entry"
+                            value.sStatus = "New"
+                        } else if (value.sStatus === "SS") {
+                            value.sStatus = "Submitted"
                         } else if (value.sStatus === "SV") {
-                            value.sStatus = "Surname Verified"
-                        } else if (value.sStatus === "SI") {
-                            value.sStatus = "Surname Invalid"
-                        } else if (value.sStatus === "SP") {
-                            value.sStatus = "Surname Published"
-                        }
+                            value.sStatus = "To be Verified"
+                        } 
                     });
                 }
             }
@@ -1329,16 +1238,12 @@ exports.getSurnameFilter = async (req, res) => {
                 // let totalSurnames = { totalCount:getSurname };
                 _.forEach(getSurname, function (value) {
                     if (value.sStatus === "SN") {
-                        value.sStatus = "Surname New"
-                    } else if (value.sStatus === "SE") {
-                        value.sStatus = "Surname Entry"
+                        value.sStatus = "New"
+                    } else if (value.sStatus === "SS") {
+                        value.sStatus = "Submitted"
                     } else if (value.sStatus === "SV") {
-                        value.sStatus = "Surname Verified"
-                    } else if (value.sStatus === "SI") {
-                        value.sStatus = "Surname Invalid"
-                    } else if (value.sStatus === "SP") {
-                        value.sStatus = "Surname Published"
-                    }
+                        value.sStatus = "To be Verified"
+                    } 
                 });
                 console.log(getSurname)
                 if (getSurname) {
@@ -1361,16 +1266,12 @@ exports.getSurnameFilter = async (req, res) => {
             }
             _.forEach(getSurname, function (value) {
                 if (value.sStatus === "SN") {
-                    value.sStatus = "Surname New"
-                } else if (value.sStatus === "SE") {
-                    value.sStatus = "Surname Entry"
+                    value.sStatus = "New"
+                } else if (value.sStatus === "SS") {
+                    value.sStatus = "Submitted"
                 } else if (value.sStatus === "SV") {
-                    value.sStatus = "Surname Verified"
-                } else if (value.sStatus === "SI") {
-                    value.sStatus = "Surname Invalid"
-                } else if (value.sStatus === "SP") {
-                    value.sStatus = "Surname Published"
-                }
+                    value.sStatus = "To be Verified"
+                } 
             });
 
             console.log(getSurname)
@@ -1421,16 +1322,12 @@ exports.getSurnameFilter = async (req, res) => {
             console.log(getSurname)
             _.forEach(getSurname, function (value) {
                 if (value.sStatus === "SN") {
-                    value.sStatus = "Surname New"
-                } else if (value.sStatus === "SE") {
-                    value.sStatus = "Surname Entry"
+                    value.sStatus = "New"
+                } else if (value.sStatus === "SS") {
+                    value.sStatus = "Submitted"
                 } else if (value.sStatus === "SV") {
-                    value.sStatus = "Surname Verified"
-                } else if (value.sStatus === "SI") {
-                    value.sStatus = "Surname Invalid"
-                } else if (value.sStatus === "SP") {
-                    value.sStatus = "Surname Published"
-                }
+                    value.sStatus = "To be Verified"
+                } 
             });
             if (getSurname) {
                 res.status(200).send({ getSurname })
@@ -1481,16 +1378,12 @@ exports.getSurnameFilter = async (req, res) => {
                 console.log(getSurname)
                 _.forEach(getSurname, function (value) {
                     if (value.sStatus === "SN") {
-                        value.sStatus = "Surname New"
-                    } else if (value.sStatus === "SE") {
-                        value.sStatus = "Surname Entry"
+                        value.sStatus = "New"
+                    } else if (value.sStatus === "SS") {
+                        value.sStatus = "Submitted"
                     } else if (value.sStatus === "SV") {
-                        value.sStatus = "Surname Verified"
-                    } else if (value.sStatus === "SI") {
-                        value.sStatus = "Surname Invalid"
-                    } else if (value.sStatus === "SP") {
-                        value.sStatus = "Surname Published"
-                    }
+                        value.sStatus = "To be Verified"
+                    } 
                 });
                 if (getSurname) {
                     res.status(200).send({ getSurname })
@@ -1538,16 +1431,12 @@ exports.getSurnameFilter = async (req, res) => {
             }
             _.forEach(getSurname, function (value) {
                 if (value.sStatus === "SN") {
-                    value.sStatus = "Surname New"
-                } else if (value.sStatus === "SE") {
-                    value.sStatus = "Surname Entry"
+                    value.sStatus = "New"
+                } else if (value.sStatus === "SS") {
+                    value.sStatus = "Submitted"
                 } else if (value.sStatus === "SV") {
-                    value.sStatus = "Surname Verified"
-                } else if (value.sStatus === "SI") {
-                    value.sStatus = "Surname Invalid"
-                } else if (value.sStatus === "SP") {
-                    value.sStatus = "Surname Published"
-                }
+                    value.sStatus = "To be Verified"
+                } 
             });
             if (getSurname) {
                 res.status(200).send({ getSurname })
@@ -1688,16 +1577,12 @@ exports.getSurnameFilter = async (req, res) => {
             // let totalSurnames = { totalCount:getSurname };
             _.forEach(getSurname, function (value) {
                 if (value.sStatus === "SN") {
-                    value.sStatus = "Surname New"
-                } else if (value.sStatus === "SE") {
-                    value.sStatus = "Surname Entry"
+                    value.sStatus = "New"
+                } else if (value.sStatus === "SS") {
+                    value.sStatus = "Submitted"
                 } else if (value.sStatus === "SV") {
-                    value.sStatus = "Surname Verified"
-                } else if (value.sStatus === "SI") {
-                    value.sStatus = "Surname Invalid"
-                } else if (value.sStatus === "SP") {
-                    value.sStatus = "Surname Published"
-                }
+                    value.sStatus = "To be Verified"
+                } 
             });
             console.log(getSurname)
             if (getSurname) {
@@ -1746,16 +1631,12 @@ exports.getSurnameFilter = async (req, res) => {
             console.log(getSurname)
             _.forEach(getSurname, function (value) {
                 if (value.sStatus === "SN") {
-                    value.sStatus = "Surname New"
-                } else if (value.sStatus === "SE") {
-                    value.sStatus = "Surname Entry"
+                    value.sStatus = "New"
+                } else if (value.sStatus === "SS") {
+                    value.sStatus = "Submitted"
                 } else if (value.sStatus === "SV") {
-                    value.sStatus = "Surname Verified"
-                } else if (value.sStatus === "SI") {
-                    value.sStatus = "Surname Invalid"
-                } else if (value.sStatus === "SP") {
-                    value.sStatus = "Surname Published"
-                }
+                    value.sStatus = "To be Verified"
+                } 
             });
             if (getSurname) {
                 res.status(200).send({ getSurname })
@@ -2019,16 +1900,12 @@ exports.getSurnameFilter = async (req, res) => {
             }
             _.forEach(getSurname, function (value) {
                 if (value.sStatus === "SN") {
-                    value.sStatus = "Surname New"
-                } else if (value.sStatus === "SE") {
-                    value.sStatus = "Surname Entry"
+                    value.sStatus = "New"
+                } else if (value.sStatus === "SS") {
+                    value.sStatus = "Submitted"
                 } else if (value.sStatus === "SV") {
-                    value.sStatus = "Surname Verified"
-                } else if (value.sStatus === "SI") {
-                    value.sStatus = "Surname Invalid"
-                } else if (value.sStatus === "SP") {
-                    value.sStatus = "Surname Published"
-                }
+                    value.sStatus = "To be Verified"
+                } 
             });
             console.log(getSurname)
             if (getSurname) {
@@ -2077,16 +1954,12 @@ exports.getSurnameFilter = async (req, res) => {
             console.log(getSurname)
             _.forEach(getSurname, function (value) {
                 if (value.sStatus === "SN") {
-                    value.sStatus = "Surname New"
-                } else if (value.sStatus === "SE") {
-                    value.sStatus = "Surname Entry"
+                    value.sStatus = "New"
+                } else if (value.sStatus === "SS") {
+                    value.sStatus = "Submitted"
                 } else if (value.sStatus === "SV") {
-                    value.sStatus = "Surname Verified"
-                } else if (value.sStatus === "SI") {
-                    value.sStatus = "Surname Invalid"
-                } else if (value.sStatus === "SP") {
-                    value.sStatus = "Surname Published"
-                }
+                    value.sStatus = "To be Verified"
+                } 
             });
             if (getSurname) {
                 res.status(200).send({ getSurname })
@@ -2915,16 +2788,12 @@ exports.getSurnameFilter = async (req, res) => {
             }
             _.forEach(getSurname, function (value) {
                 if (value.sStatus === "SN") {
-                    value.sStatus = "Surname New"
-                } else if (value.sStatus === "SE") {
-                    value.sStatus = "Surname Entry"
+                    value.sStatus = "New"
+                } else if (value.sStatus === "SS") {
+                    value.sStatus = "Submitted"
                 } else if (value.sStatus === "SV") {
-                    value.sStatus = "Surname Verified"
-                } else if (value.sStatus === "SI") {
-                    value.sStatus = "Surname Invalid"
-                } else if (value.sStatus === "SP") {
-                    value.sStatus = "Surname Published"
-                }
+                    value.sStatus = "To be Verified"
+                } 
                 console.log(value);
             });
 

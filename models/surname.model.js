@@ -90,7 +90,16 @@ const surnameSchema = new mongoose.Schema(
     history:{
       type: String,
       trim: true
+    },    
+    isPublished:{
+      type:String,
+      trim:true
+    },    
+    assignTo:{
+      type:String,
+      trim:true
     },
+
     translations: [{
       lang: String,
       value: [{

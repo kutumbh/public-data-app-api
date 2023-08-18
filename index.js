@@ -36,6 +36,7 @@ const kuldevta = require("./routes/kuldevta.route");
 const surnameType = require("./routes/surnameType.route");
 const script = require("./routes/script.route");
 const searchData = require("./routes/searchData.route");
+const dataSearchFilter = require("./routes/dataSearchFilter.route");
 
 const dam = require("./dam/dam.route");
 // Import API Routes
@@ -89,6 +90,7 @@ app.use(surnameType);
 app.use(script);
 app.use(dam);
 app.use(searchData);
+app.use(dataSearchFilter);
 
 app.use(
   cors({

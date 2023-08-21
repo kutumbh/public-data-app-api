@@ -3204,3 +3204,34 @@ exports.countAndUpdatedSurnames = async (req, res) => {
         res.status(400).send(e)
     }
 }
+
+exports.getDropDownMasterInReligion = async (req, res) => {
+    try {     
+            const getReligion = await surnamesModel.find().distinct('religion');
+            if (getReligion) {
+                res.status(200).send(getReligion)
+            } else {
+                res.status(404).send({
+                    message: "No Data Found!"
+                })
+            }
+        }
+    catch (e) {
+        res.status(400).send(e);
+    }
+}
+exports.getDropDownMasterInScript = async (req, res) => {
+    try {     
+            const getScript = await surnamesModel.find().distinct('script');
+            if (getScript) {
+                res.status(200).send(getScript)
+            } else {
+                res.status(404).send({
+                    message: "No Data Found!"
+                })
+            }
+        }   
+    catch (e) {
+        res.status(400).send(e);
+    }
+}

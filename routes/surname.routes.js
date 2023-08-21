@@ -30,5 +30,7 @@ router.post('/getSurnameFilter',surnameController.getSurnameFilter);
 router.get('/getSurnameById/:_id',surnameController.getSurnameById);
 router.post('/updateSurnameStatusVerified',surnameController.updateSurnameStatusVerified);
 router.get('/countAndUpdatedSurnames',surnameController.countAndUpdatedSurnames);
+router.get('/getDropDownMasterInReligion',surnameController.getDropDownMasterInReligion);
+router.get('/getDropDownMasterInScript',surnameController.getDropDownMasterInScript);
 
 module.exports = router;

@@ -96,8 +96,8 @@ const surnameSchema = new mongoose.Schema(
       trim:true
     },    
     assignTo:{
-      type:String,
-      trim:true
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "pdUser",
     },
 
     translations: [{

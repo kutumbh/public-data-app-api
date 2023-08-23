@@ -18,6 +18,8 @@ exports.getSearchFilterData = async(req, res) => {
     const religions = req.body.religion;
     const scripts = req.body.script;
     const searchText = req.body.searchText;
+    const sStatuss=req.body.sStatus;
+    const assignTo=req.body.assignTo;
 
      
     const matchConditions = {}
@@ -27,6 +29,17 @@ exports.getSearchFilterData = async(req, res) => {
     if (scripts && scripts.length>0) {
       matchConditions.script = { $in: scripts};
     }
+    if(sStatuss && sStatuss.length>0){
+      matchConditions.sStatus = { $in: sStatuss};
+    }
+    if (assignTo && assignTo.length > 0) {
+      const assignToIds = assignTo.map((id) => mongoose.Types.ObjectId(id));
+      console.log("assignToIds:", assignToIds); // Check if the array is populated correctly
+      matchConditions.assignTo = { $in: assignToIds };
+    }
+    console.log("matchConditions:", matchConditions);
+
+    
 
     const searchQuery = searchText ? searchText.trim() : "";
 
@@ -70,6 +83,7 @@ exports.getSearchFilterData = async(req, res) => {
                     history: "$history",
                     wikiUrl: "$wikiUrl",
                     translations: "$translations",
+                    assignTo:"$assignTo",
                     createdAt: "$createdAt",
                     updatedAt: "$updatedAt"
                   }
@@ -98,6 +112,7 @@ exports.getSearchFilterData = async(req, res) => {
                     history: "$history",
                     wikiUrl: "$wikiUrl",
                     translations: "$translations",
+                    assignTo:"$assignTo",
                     createdAt: "$createdAt",
                     updatedAt: "$updatedAt"
                   }
@@ -105,6 +120,64 @@ exports.getSearchFilterData = async(req, res) => {
               }
             }
           ],
+          statusFacet: [
+            {
+              $group: {
+                _id: "$sStatus",
+                count: { $sum: 1 },
+                artists: {
+                  $push: {
+                    name: "$surname",
+                    religion: "$religion",
+                    script: "$script",
+                    community: "$community",
+                    kuldevtaFamilyDeity: "$kuldevtaFamilyDeity",
+                    alternative: "$alternative",
+                    createdBy: "$createdBy",
+                    meaning: "$meaning",
+                    sStatus: "$sStatus",
+                    vansha: "$vansha",
+                    veda: "$veda",
+                    history: "$history",
+                    wikiUrl: "$wikiUrl",
+                    translations: "$translations",
+                    assignTo:"$assignTo",
+                    createdAt: "$createdAt",
+                    updatedAt: "$updatedAt"
+                  }
+                }
+              }
+            }
+          ],
+          assignToFacet: [
+            {
+              $group: {
+                _id: "$assignTo",
+                count: { $sum: 1 },
+                artists: {
+                  $push: {
+                    name: "$surname",
+                    religion: "$religion",
+                    script: "$script",
+                    community: "$community",
+                    kuldevtaFamilyDeity: "$kuldevtaFamilyDeity",
+                    alternative: "$alternative",
+                    createdBy: "$createdBy",
+                    meaning: "$meaning",
+                    sStatus: "$sStatus",
+                    vansha: "$vansha",
+                    veda: "$veda",
+                    history: "$history",
+                    wikiUrl: "$wikiUrl",
+                    translations: "$translations",
+                    assignTo:"$assignTo",
+                    createdAt: "$createdAt",
+                    updatedAt: "$updatedAt"
+                  }
+                }
+              }
+            }
+          ]
 
 
       }

@@ -3235,3 +3235,18 @@ exports.getDropDownMasterInScript = async (req, res) => {
         res.status(400).send(e);
     }
 }
+exports.getDropDownMasterInweekOfYear = async (req, res) => {
+    try {     
+            const getweekOfYear = await surnamesModel.find().distinct('weekOfYear');
+            if (getweekOfYear) {
+                res.status(200).send(getweekOfYear)
+            } else {
+                res.status(404).send({
+                    message: "No Data Found!"
+                })
+            }
+        }   
+    catch (e) {
+        res.status(400).send(e);
+    }
+}

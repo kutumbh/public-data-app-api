@@ -32,5 +32,6 @@ router.post('/updateSurnameStatusVerified',surnameController.updateSurnameStatus
 router.get('/countAndUpdatedSurnames',surnameController.countAndUpdatedSurnames);
 router.get('/getDropDownMasterInReligion',surnameController.getDropDownMasterInReligion);
 router.get('/getDropDownMasterInScript',surnameController.getDropDownMasterInScript);
+router.get('/getDropDownMasterInweekOfYear',surnameController.getDropDownMasterInweekOfYear);
 
 module.exports = router;

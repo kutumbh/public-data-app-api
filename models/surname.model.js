@@ -1,4 +1,5 @@
 const mongoose = require('mongoose')
+const { integer } = require('sharp/lib/is')
 const surnameSchema = new mongoose.Schema(
   {
     surname: {
@@ -99,7 +100,15 @@ const surnameSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "pdUser",
     },
-
+    weekOfYear:{
+      type:Number,
+    },
+    pd_count:{
+      type:Number
+    },    
+    pg_content:{
+      type:String
+    },
     translations: [{
       lang: String,
       value: [{

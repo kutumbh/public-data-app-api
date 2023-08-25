@@ -1,4 +1,5 @@
 const surnamesModel = require('../models/surname.model');
+const EntityLogModel=require('../models/entityLog.model')
 const religionModel = require('../models/religion.model')
 const communityModel = require('../models/community.model')
 const scriptModel = require('../models/script.model')
@@ -156,19 +157,78 @@ exports.updateSurname = async ({ params, body }, res) => {
 
 exports.updateSurnameForm = async ({ params, body }, res) => {
     try {
-        console.log(body)
+
         const _id = params._id;
         console.log("id:", _id)
-        const updateSurnameData = await surnamesModel.findByIdAndUpdate({ _id: _id }, body, { new: true })
-        console.log(updateSurnameData)
-        if (updateSurnameData) {
-            res.status(201).send(updateSurnameData)
-        } else {
-            res.status(404).send({ message: 'No Data found' })
+        if (body.action === 'save') {
+            const data = {
+                surname: body.surname,
+                type: body.type,
+                community: body.community,
+                religion: body.religion,
+                kuldevtaFamilyDeity: body.kuldevtaFamilyDeity,
+                gotra: body.gotra,
+                script: body.script,
+                alternative: body.alternative,
+                meaning: body.meaning,
+                history: body.history,
+                wikiUrl: body.wikiUrl,
+                sStatus: body.sStatus,
+                assignTo: body.assignTo,
+                isPublished: body.isPublished
+            };
+            console
+
+            const updatedData = await surnamesModel.findByIdAndUpdate({ _id: _id }, data, { new: true });
+
+            if (!updatedData) {
+                return res.status(404).send({ message: 'No Data found' });
+            }
+
+            res.status(200).send({ updatedData });
         }
-    } catch (e) {
-        res.status(400).send(e)
+        // Action: Submit
+        else if (body.action === 'submit') {
+            // Update in the surnamesModel collection
+            const data = {
+                surname: body.surname,
+                community: body.community,
+                religion: body.religion,
+                kuldevtaFamilyDeity: body.kuldevtaFamilyDeity,
+                gotra: body.gotra,
+                script: body.script,
+                alternative: body.alternative,
+                meaning: body.meaning,
+                history: body.history,
+                wikiUrl: body.wikiUrl,
+                sStatus: body.sStatus,
+                assignTo: body.assignTo,
+                isPublished: body.isPublished
+            };
+            console.log(data)
+            const updatedData = await surnamesModel.findByIdAndUpdate({ _id: _id }, data, { new: true });
+            console.log(updatedData)
+            if (!updatedData) {
+                return res.status(404).send({ message: 'No Data found' });
+            }
+
+            // Create a new record in the EntityLog collection
+            const newEntityLogEntry = new EntityLogModel({
+                refURL: body.refURL,
+                comment: body.comment
+            });
+            const createdEntityLogEntry = await newEntityLogEntry.save();
+
+            res.status(200).send({ updatedData, createdEntityLogEntry });
+        }
+    
+    else {
+        res.status(400).send({ message: 'Invalid action' });
     }
+} catch (e) {
+    console.error(e);
+    res.status(400).send(e);
+}
 }
 
 exports.deleteSurname = async (req, res) => {

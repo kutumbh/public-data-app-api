@@ -14,7 +14,12 @@ refURL:{
 
 comment:{
     type:String
+},
+surnameId:{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "surname",
 }},
+
 
     {
         timestamps: true

@@ -37,6 +37,7 @@ const surnameType = require("./routes/surnameType.route");
 const script = require("./routes/script.route");
 const searchData = require("./routes/searchData.route");
 const dataSearchFilter = require("./routes/dataSearchFilter.route");
+const entityLog=require("./routes/entityLog.route")
 
 const dam = require("./dam/dam.route");
 // Import API Routes
@@ -91,6 +92,7 @@ app.use(script);
 app.use(dam);
 app.use(searchData);
 app.use(dataSearchFilter);
+app.use(entityLog)
 
 app.use(
   cors({

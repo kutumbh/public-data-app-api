@@ -177,7 +177,7 @@ exports.updateSurnameForm = async ({ params, body }, res) => {
                 assignTo: body.assignTo,
                 isPublished: body.isPublished
             };
-            console
+            
 
             const updatedData = await surnamesModel.findByIdAndUpdate({ _id: _id }, data, { new: true });
 
@@ -215,7 +215,8 @@ exports.updateSurnameForm = async ({ params, body }, res) => {
             // Create a new record in the EntityLog collection
             const newEntityLogEntry = new EntityLogModel({
                 refURL: body.refURL,
-                comment: body.comment
+                comment: body.comment,
+                surnameId:_id
             });
             const createdEntityLogEntry = await newEntityLogEntry.save();
 

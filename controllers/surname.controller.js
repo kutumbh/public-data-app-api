@@ -3291,6 +3291,8 @@ exports.getSurnameById = async (req, res) => {
                     getSurname.isPublished='Yes'
                 }else if(getSurname.isPublished==="N"){
                     getSurname.isPublished='No'
+                }else if(getSurname.isPublished==="B"){
+                    getSurname.isPublished='Block'
                 }
             
             res.status(201).send(getSurname)

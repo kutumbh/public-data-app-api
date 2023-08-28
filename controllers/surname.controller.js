@@ -184,6 +184,35 @@ exports.updateSurnameForm = async ({ params, body }, res) => {
             if (!updatedData) {
                 return res.status(404).send({ message: 'No Data found' });
             }
+           
+    const updatedWeekData = await surnamesModel.updateOne(
+        { _id: _id },
+        [
+        {
+          $addFields: {
+            yearPart: { $year: "$updatedAt" },
+            weekPart: { $week: "$updatedAt" }
+          }
+        },
+        {
+          $addFields: {
+            weekOfYear: { $concat: [ { $toString: "$yearPart" }, { $toString: "$weekPart" } ] }
+          }
+        },
+        {
+          $addFields: {
+            weekOfYearInt: { $toInt: "$weekOfYear" }
+          }
+        },
+        {
+          $set: {
+            weekOfYear: "$weekOfYearInt"
+          }
+        },
+        {
+          $unset: ["yearPart", "weekPart", "weekOfYearInt"]
+        }
+      ]);
 
             res.status(200).send({ updatedData });
         }
@@ -211,6 +240,34 @@ exports.updateSurnameForm = async ({ params, body }, res) => {
             if (!updatedData) {
                 return res.status(404).send({ message: 'No Data found' });
             }
+            const updatedWeekData = await surnamesModel.updateOne(
+                { _id: _id },
+                [
+                {
+                  $addFields: {
+                    yearPart: { $year: "$updatedAt" },
+                    weekPart: { $week: "$updatedAt" }
+                  }
+                },
+                {
+                  $addFields: {
+                    weekOfYear: { $concat: [ { $toString: "$yearPart" }, { $toString: "$weekPart" } ] }
+                  }
+                },
+                {
+                  $addFields: {
+                    weekOfYearInt: { $toInt: "$weekOfYear" }
+                  }
+                },
+                {
+                  $set: {
+                    weekOfYear: "$weekOfYearInt"
+                  }
+                },
+                {
+                  $unset: ["yearPart", "weekPart", "weekOfYearInt"]
+                }
+              ]);
 
             // Create a new record in the EntityLog collection
             const newEntityLogEntry = new EntityLogModel({

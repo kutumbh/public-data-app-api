@@ -96,10 +96,10 @@ const surnameSchema = new mongoose.Schema(
       type:String,
       trim:true
     },    
-    assignTo:{
+    assignTo:[{
       type: mongoose.Schema.Types.ObjectId,
       ref: "pdUser",
-    },
+    }],
     weekOfYear:{
       type:Number,
     },

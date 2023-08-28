@@ -3276,7 +3276,23 @@ exports.getSurnameById = async (req, res) => {
         console.log("id:", _id)
         const getSurname = await surnamesModel.findOne({ _id: _id }).populate('assignTo')
         console.log(getSurname)
-        if (getSurname) {
+        
+            if (getSurname) {
+                // Modify the sStatus property
+                if (getSurname.sStatus === 'SN') {
+                    getSurname.sStatus = 'New';
+                } else if (getSurname.sStatus === 'SV') {
+                    getSurname.sStatus = 'Verification Pending';
+                } else if (getSurname.sStatus === 'SS') {
+                    getSurname.sStatus = 'Submitted';
+                }
+
+                if(getSurname.isPublished==="Y"){
+                    getSurname.isPublished='Yes'
+                }else if(getSurname.isPublished==="N"){
+                    getSurname.isPublished='No'
+                }
+            
             res.status(201).send(getSurname)
         } else {
             res.status(404).send({ message: 'No Data found' })
@@ -3286,6 +3302,7 @@ exports.getSurnameById = async (req, res) => {
         res.status(400).send(e)
     }
 }
+
 
 exports.updateSurnameStatusVerified = async (req, res) => {
     try {

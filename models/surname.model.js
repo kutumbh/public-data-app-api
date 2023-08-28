@@ -1,5 +1,5 @@
 const mongoose = require('mongoose')
-const { integer } = require('sharp/lib/is')
+const pdUser = require('./pdUser.model');
 const surnameSchema = new mongoose.Schema(
   {
     surname: {

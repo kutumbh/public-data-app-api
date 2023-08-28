@@ -3274,7 +3274,7 @@ exports.getSurnameById = async (req, res) => {
     try {
         const _id = req.params._id;
         console.log("id:", _id)
-        const getSurname = await surnamesModel.findOne({ _id: _id })
+        const getSurname = await surnamesModel.findOne({ _id: _id }).populate('assignTo')
         console.log(getSurname)
         if (getSurname) {
             res.status(201).send(getSurname)
@@ -3282,6 +3282,7 @@ exports.getSurnameById = async (req, res) => {
             res.status(404).send({ message: 'No Data found' })
         }
     } catch (e) {
+        console.log(e)
         res.status(400).send(e)
     }
 }

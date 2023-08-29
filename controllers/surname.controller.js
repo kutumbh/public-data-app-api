@@ -3293,8 +3293,7 @@ exports.getSurnameById = async (req, res) => {
                     getSurname.isPublished='No'
                 }else if(getSurname.isPublished==="B"){
                     getSurname.isPublished='Block'
-                }
-            
+                }            
             res.status(201).send(getSurname)
         } else {
             res.status(404).send({ message: 'No Data found' })

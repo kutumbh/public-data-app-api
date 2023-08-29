@@ -64,6 +64,15 @@ exports.getSearchFilterData = async (req, res) => {
           ],
         },
       },
+        {
+          $lookup: {
+            from: "pdUsers",
+            localField: "assignTo",
+            foreignField: "_id",
+            as: "assignTo",
+          },
+        },
+      
     ]);
     res.status(200).send(filteredUsers);
   } catch (e) {

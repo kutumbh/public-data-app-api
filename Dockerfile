@@ -5,7 +5,7 @@ RUN pm2 install pm2-logrotate
 RUN pm2 set pm2-logrotate:max_size 1K
 COPY package.json .
 COPY yarn.lock . 
-RUN yarn install
+RUN yarn install --ignore-engines
 COPY . .
 EXPOSE 3000
 CMD ["pm2-runtime", "production.yml"]

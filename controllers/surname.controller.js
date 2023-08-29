@@ -3282,7 +3282,7 @@ exports.getSurnameById = async (req, res) => {
                 if (getSurname.sStatus === 'SN') {
                     getSurname.sStatus = 'New';
                 } else if (getSurname.sStatus === 'SV') {
-                    getSurname.sStatus = 'Verification Pending';
+                    getSurname.sStatus = 'For Updated';
                 } else if (getSurname.sStatus === 'SS') {
                     getSurname.sStatus = 'Submitted';
                 }

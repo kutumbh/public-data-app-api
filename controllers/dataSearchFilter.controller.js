@@ -72,7 +72,6 @@ exports.getSearchFilterData = async (req, res) => {
             as: "assignTo",
           },
         },
-      
     ]);
     res.status(200).send(filteredUsers);
   } catch (e) {

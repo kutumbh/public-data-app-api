@@ -1,9 +1,9 @@
-FROM node:10-alpine
+FROM node:14-alpine
 WORKDIR /app
 RUN  yarn global add pm2
 RUN pm2 install pm2-logrotate
 RUN pm2 set pm2-logrotate:max_size 1K
-COPY package.json .   
+COPY package.json .
 COPY yarn.lock . 
 RUN yarn install
 COPY . .

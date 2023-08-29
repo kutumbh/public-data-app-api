@@ -1,13 +1,10 @@
-FROM node:11-alpine
-
-RUN mkdir -p /usr/src/app
-
-WORKDIR /usr/src/app
-
+FROM node:14-alpine
+WORKDIR /app
+RUN  yarn global add pm2
+RUN pm2 install pm2-logrotate
+RUN pm2 set pm2-logrotate:max_size 1K
+COPY package.json .   
+RUN yarn install
 COPY . .
-
-RUN npm install
-
-EXPOSE 80
-
-CMD ["npm", "run", "start"]
+EXPOSE 3000
+CMD ["pm2-runtime", "production.yml"]

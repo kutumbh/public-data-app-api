@@ -3393,7 +3393,7 @@ exports.getDropDownMasterInweekOfYear = async (req, res) => {
 
 exports.getSurnameDetails = async (req, res) => {
     try {
-        const lastName = req.params.lastName;
+        const lastName = req.body.lastName;
 
         const data = await surnameDetailsModel.find({ "lastName": lastName });
 

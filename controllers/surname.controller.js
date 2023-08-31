@@ -3,6 +3,7 @@ const EntityLogModel=require('../models/entityLog.model')
 const religionModel = require('../models/religion.model')
 const communityModel = require('../models/community.model')
 const scriptModel = require('../models/script.model')
+const surnameDetailsModel=require('../models/surnamedetails.model')
 const mongoose = require('mongoose')
 const ObjectsToCsv = require('objects-to-csv');
 const aws = require('aws-sdk')
@@ -3387,3 +3388,50 @@ exports.getDropDownMasterInweekOfYear = async (req, res) => {
         res.status(400).send(e);
     }
 }
+
+
+
+exports.getSurnameDetails = async (req, res) => {
+    try {
+        const lastName = req.params.lastName;
+
+        const data = await surnameDetailsModel.find({ "lastName": lastName });
+
+        if (data.length === 0) {
+            res.status(404).send({
+                message: `No data found for lastName: ${lastName}`
+            })
+        }
+        else{
+        const count=data[0].count;
+        const placeData = data[0].place;
+        const categoryData = data[0].categoryCount;
+
+        placeData.sort((firstItem, secondItem) => secondItem.count - firstItem.count);
+        categoryData.sort((firstItem, secondItem) => secondItem.count - firstItem.count);
+        // Filter and process placeData to get state-wise counts
+        const stateCounts = placeData.map(place => {
+            return {
+                state: place._id,
+                count: place.count
+            };
+        });
+
+        // Process categoryData to get source-wise counts
+        const sourceCounts = categoryData.map(category => {
+            return {
+                source: category._id,
+                count: category.count
+            };
+        });
+
+
+        res.status(200).json({count,stateCounts, sourceCounts });
+    }
+    } catch (e) {
+        console.log(e)
+        res.status(500).json({ error: e.message });
+    }
+};
+
+

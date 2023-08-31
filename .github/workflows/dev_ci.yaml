@@ -1,9 +1,10 @@
-name: dev_ci
+name: dev-ci
 
 on:
   push:
     branches:
       - dev
+  
 
 jobs:
   Build-Push-Commit:
@@ -19,19 +20,11 @@ jobs:
 
             - name: Login to Amazon ECR
               id: login-ecr
-              uses: aws-actions/amazon-ecr-login@v1
+              uses: aws-actions/amazon-ecr-login@v1           
 
-            - uses:
-                  actions/checkout@v2
-                  # In this step, this action saves a list of existing images ,
-                  # the cache is created without them in the post run.
-                  # It also restores the cache if it exists.
-            - uses:
-                  satackey/action-docker-layer-caching@v0.0.11
-                  # Ignore the failure of a step and avoid terminating the job.
-              continue-on-error: true
 
-            - uses: actions/checkout@v2
+
+            - uses: actions/checkout@v3
             - name: Set env
               run: echo "GITHUB_BRANCH=$(echo $GITHUB_SHA)" >> $GITHUB_ENV
 
@@ -39,7 +32,7 @@ jobs:
               run: |
                   docker build -t  697581818967.dkr.ecr.ap-south-1.amazonaws.com/public-data-app-api:$GITHUB_SHA .
 
-                  docker push 697581818967.dkr.ecr.ap-south-1.amazonaws.com/public-data-app-api:$GITHUB_SHA
+                  docker push 697581818967.dkr.ecr.ap-south-1.amazonaws.com/public-data-app-api:$GITHUB_SHA 
 
                   git clone https://${{ secrets.AWS_GITHUB_USER }}:${{ secrets.AWS_GITHUB_TOKEN }}@github.com/kutumbh/imeuswe-gitops
 

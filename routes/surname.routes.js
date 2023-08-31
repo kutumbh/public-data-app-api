@@ -34,5 +34,4 @@ router.get('/getDropDownMasterInReligion',surnameController.getDropDownMasterInR
 router.get('/getDropDownMasterInScript',surnameController.getDropDownMasterInScript);
 router.get('/getDropDownMasterInweekOfYear',surnameController.getDropDownMasterInweekOfYear);
 router.get('/getSurnameDetails/:lastName',surnameController.getSurnameDetails);
-
 module.exports = router;

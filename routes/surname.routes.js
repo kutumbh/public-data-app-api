@@ -33,5 +33,6 @@ router.get('/countAndUpdatedSurnames',surnameController.countAndUpdatedSurnames)
 router.get('/getDropDownMasterInReligion',surnameController.getDropDownMasterInReligion);
 router.get('/getDropDownMasterInScript',surnameController.getDropDownMasterInScript);
 router.get('/getDropDownMasterInweekOfYear',surnameController.getDropDownMasterInweekOfYear);
+router.get('/getTranslations',surnameController.getTranslations);
 router.post('/getSurnameDetails',surnameController.getSurnameDetails);
 module.exports = router;

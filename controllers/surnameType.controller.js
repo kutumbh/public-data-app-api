@@ -2,7 +2,7 @@ const surnameTypeModel = require('../models/surnameType.model')
 
 exports.getSurnameType = async(req, res) => {
     try {
-        const getSurnameType = await surnameTypeModel.find().sort({ name: 1})
+        const getSurnameType = await surnameTypeModel.find().distinct('name')
         if (getSurnameType) {
             res.status(201).send(getSurnameType)
         } else {

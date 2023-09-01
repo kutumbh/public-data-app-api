@@ -3388,6 +3388,21 @@ exports.getDropDownMasterInweekOfYear = async (req, res) => {
         res.status(400).send(e);
     }
 }
+exports.getTranslations = async (req, res) => {
+    try {     
+            const getTranslations = await surnamesModel.find().distinct('translations');
+            if (getTranslations) {
+                res.status(200).send(getTranslations)
+            } else {
+                res.status(404).send({
+                    message: "No Data Found!"
+                })
+            }
+        }   
+    catch (e) {
+        res.status(400).send(e);
+    }
+}
 
 
 

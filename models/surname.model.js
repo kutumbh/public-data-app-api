@@ -61,7 +61,7 @@ const surnameSchema = new mongoose.Schema(
       trim: true,
     },
     type:[{
-      Type: String
+      type: String
     }],
     // profession:{
     //   type: String,

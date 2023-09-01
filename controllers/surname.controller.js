@@ -3448,5 +3448,32 @@ exports.getSurnameDetails = async (req, res) => {
         res.status(500).json({ error: e.message });
     }
 };
+exports.updateSurnameAssignTo = async ({ params, body }, res) => {
+    try {
+
+        const ecode = params.ecode;
+        
+            const data = {
+                sStatus: body.sStatus,
+                assignTo: body.assignTo
+            };
+            
+
+            const updatedData = await surnamesModel.findOneAndUpdate({surname:ecode}, data, { new: true });
+
+            if (!updatedData) {
+                return res.status(404).send({ message: 'No Data found' });
+            }
+           
+    
+
+            res.status(200).send({ updatedData });
+        }
+        // Action: Submit
+      catch (e) {
+    console.error(e);
+    res.status(400).send(e);
+}
+}
 
 

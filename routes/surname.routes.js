@@ -36,4 +36,5 @@ router.get('/getDropDownMasterInweekOfYear',surnameController.getDropDownMasterI
 router.get('/getTranslations',surnameController.getTranslations);
 router.put('/updateSurnameAssignTo/:ecode',surnameController.updateSurnameAssignTo)
 router.post('/getSurnameDetails',surnameController.getSurnameDetails);
+router.put('/updateSurnameStatus/:_id',surnameController.updateSurnameStatus)
 module.exports = router;

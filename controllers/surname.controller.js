@@ -3289,9 +3289,9 @@ exports.getSurnameById = async (req, res) => {
                 }
 
                 if(getSurname.isPublished==="Y"){
-                    getSurname.isPublished='Yes'
+                    getSurname.isPublished='Published'
                 }else if(getSurname.isPublished==="N"){
-                    getSurname.isPublished='No'
+                    getSurname.isPublished='Not Published'
                 }else if(getSurname.isPublished==="B"){
                     getSurname.isPublished='Block'
                 }            
@@ -3464,6 +3464,66 @@ exports.updateSurnameAssignTo = async ({ params, body }, res) => {
             if (!updatedData) {
                 return res.status(404).send({ message: 'No Data found' });
             }
+           
+    
+
+            res.status(200).send({ updatedData });
+        }
+        // Action: Submit
+      catch (e) {
+    console.error(e);
+    res.status(400).send(e);
+}
+}
+
+exports.updateSurnameStatus = async ({ params, body }, res) => {
+    try {
+
+        const id= params._id;
+        
+            const data = {
+                sStatus: body.sStatus,
+                assignTo: body.assignTo,
+                isPublished:body.isPublished,
+                pd_count:body.pd_count
+
+            };
+            
+
+            const updatedData = await surnamesModel.findByIdAndUpdate({"_id":id}, data, { new: true });
+            
+            if (!updatedData) {
+                return res.status(404).send({ message: 'No Data found' });
+            }
+            const updatedWeekData = await surnamesModel.findByIdAndUpdate(
+                { _id: id },
+                [
+                {
+                  $addFields: {
+                    yearPart: { $year: "$updatedAt" },
+                    weekPart: { $week: "$updatedAt" }
+                  }
+                },
+                {
+                  $addFields: {
+                    weekOfYear: { $concat: [ { $toString: "$yearPart" }, { $toString: "$weekPart" } ] }
+                  }
+                },
+                {
+                  $addFields: {
+                    weekOfYearInt: { $toInt: "$weekOfYear" }
+                  }
+                },
+                {
+                  $set: {
+                    weekOfYear: "$weekOfYearInt"
+                  }
+                },
+                {
+                  $unset: ["yearPart", "weekPart", "weekOfYearInt"]
+                }
+              ]);
+
            
     
 

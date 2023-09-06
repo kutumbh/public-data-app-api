@@ -8,4 +8,8 @@ router.post(
   "/getSearchFilterData",
   dataSearchController.getSearchFilterData
 );
+router.post(
+  "/getCountsOfSurname",
+  dataSearchController.getCountsOfSurname
+);
 module.exports = router;

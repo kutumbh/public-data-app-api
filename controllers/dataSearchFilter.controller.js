@@ -110,65 +110,60 @@ exports.getSearchFilterData = async (req, res) => {
       searchText === "" &&
       sStatuss.length === 0 &&
       assignTo.length === 0 &&
-      weekOfYear.length === 0
+      weekOfYear.length=== 0
     ) {
       // Send an empty response with a status code of 200
       return res.status(200).send([]);
     }
 
-    const aggregationPipeline=[
-      
-            {
-              $match: {
-                $or: [
-                  { religion: { $in: religions } },
-                  { script: { $in: scripts } },
-                  { sStatus: { $in: sStatuss } },
-                  { assignTo: { $in: assignTo.map((id) => mongoose.Types.ObjectId(id)) } },
-                  {weekOfYear: weekOfYear}
-                ]
-                // Additional match conditions if needed
-              },
-            }
-            
+    const aggregationPipeline=[];
+    if (searchText!=="") {
+      aggregationPipeline.unshift({
+          $search: {
+              index: "fuzzy3",
               
-                //weekOfYear: {$in:weekOfYear}
-          //       community: { $exists: true, $not: { $size: 0 } },
-          //       gotra: { $exists: true, $not: { $size: 0 } }
-          
-            
-    ]
+                autocomplete: {
+                  path: "surname",
+                  query:searchText,
+                  fuzzy: {
+                    prefixLength: 1,
+                    maxEdits: 1,
+                    maxExpansions: 256,
+                  },
+                },
+              
+          }
+      });
+  }
+    const matchConditions = {};
+    if (religions.length > 0) {
+      //aggregationPipeline.push({ $unwind: "$religion" });
+      matchConditions.religion = { $in: religions};
+    }
+    if (scripts.length > 0) {
+      //aggregationPipeline.push({ $unwind: "$script" });
+      matchConditions.script = { $in: scripts };
+    }
+    if (sStatuss.length > 0) {
+      matchConditions.sStatus = { $in: sStatuss };
+    }
+    if (assignTo.length > 0) {
+      const assignToIds = assignTo.map((id) => mongoose.Types.ObjectId(id));
+      matchConditions.assignTo = { $in: assignToIds };
+    }
+    if (weekOfYear.length>0) {
+      matchConditions.weekOfYear = { $in: weekOfYear };
+    }
+    aggregationPipeline.push(
+      {$match:matchConditions},      
+    );
     
     
-          if (searchText) {
-              aggregationPipeline.unshift({
-                $search: {
-                  index: "fuzzy3",
-                  compound: {
-                    should: [
-                      {
-                        autocomplete: {
-                          query: searchText,
-                          path: "community"
-                        }
-                      },
-                      {
-                        autocomplete: {
-                          query: searchText,
-                          path: "surname"
-                        }
-                      },
-                      {
-                        autocomplete: {
-                          query: searchText,
-                          path: "meaning"
-                        }
-                      }
-                    ]
-                  }
-                }
-              });
-            }
+          // Ensure that $search is the first stage in the pipeline
+
+
+// ... (other pipeline stages)
+
             aggregationPipeline.push({
               $lookup: {
                 from: "pdUsers", // The name of the collection to join
@@ -192,7 +187,7 @@ exports.getSearchFilterData = async (req, res) => {
               },
             });
 
-            const filteredUsers = await surnamesModel.aggregate(aggregationPipeline);          
+            const filteredUsers = await surnamesModel.aggregate(aggregationPipeline)    
     res.status(200).send({filteredUsers, // Your paginated data
     });
   } catch (e) {

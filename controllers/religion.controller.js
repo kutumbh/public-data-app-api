@@ -2,7 +2,7 @@ const religionModel = require('../models/religion.model')
 
 exports.getReligionData = async(req, res) => {
     try {
-        const religion = await religionModel.find().sort({ name: 1});
+        const religion = await religionModel.find().distinct('name').sort();
         if (religion) {
             res.status(201).send(religion)
         } else {

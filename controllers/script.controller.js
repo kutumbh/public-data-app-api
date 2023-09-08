@@ -2,7 +2,7 @@ const scriptModel = require('../models/script.model')
 
 exports.getScriptData = async(req, res) => {
     try {
-        const scriptData = await scriptModel.find().sort({ name: 1});
+        const scriptData = await scriptModel.find().distinct('name').sort()
         if (scriptData) {
             res.status(201).send(scriptData)
         } else {

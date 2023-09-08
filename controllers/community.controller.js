@@ -4,7 +4,7 @@ const surnamesModel = require('../models/surname.model');
  
 exports.getCommunityData = async(req, res) => {
     try {
-        const community = await communityModel.find().sort({ name: 1});
+        const community = await communityModel.find().distinct('name').sort();
         if (community) {
             res.status(201).send(community)
         } else {

@@ -104,59 +104,66 @@ exports.getSearchFilterData = async (req, res) => {
     const sStatuss = req.body.sStatus || [];
     const assignTo = req.body.assignTo || [];
     const weekOfYear = req.body.weekOfYear || [];
-    const aggregationPipeline=[
-      
-            {
-              $match: {
-                $or: [
-                  { religion: { $in: religions } },
-                  { script: { $in: scripts } },
-                  { sStatus: { $in: sStatuss } },
-                  { assignTo: { $in: assignTo.map((id) => mongoose.Types.ObjectId(id)) } },
-                  {weekOfYear: weekOfYear}
-                ]
-                // Additional match conditions if needed
-              },
-            }
-            
+    if (
+      religions.length === 0 &&
+      scripts.length === 0 &&
+      searchText === "" &&
+      sStatuss.length === 0 &&
+      assignTo.length === 0 &&
+      weekOfYear.length=== 0
+    ) {
+      // Send an empty response with a status code of 200
+      return res.status(200).send([]);
+    }
+
+    const aggregationPipeline=[];
+    if (searchText!=="") {
+      aggregationPipeline.unshift({
+          $search: {
+              index: "fuzzy3",
               
-                //weekOfYear: {$in:weekOfYear}
-          //       community: { $exists: true, $not: { $size: 0 } },
-          //       gotra: { $exists: true, $not: { $size: 0 } }
-          
-            
-    ]
+                autocomplete: {
+                  path: "surname",
+                  query:searchText,
+                  fuzzy: {
+                    prefixLength: 1,
+                    maxEdits: 1,
+                    maxExpansions: 256,
+                  },
+                },
+              
+          }
+      });
+  }
+    const matchConditions = {};
+    if (religions.length > 0) {
+      //aggregationPipeline.push({ $unwind: "$religion" });
+      matchConditions.religion = { $in: religions};
+    }
+    if (scripts.length > 0) {
+      //aggregationPipeline.push({ $unwind: "$script" });
+      matchConditions.script = { $in: scripts };
+    }
+    if (sStatuss.length > 0) {
+      matchConditions.sStatus = { $in: sStatuss };
+    }
+    if (assignTo.length > 0) {
+      const assignToIds = assignTo.map((id) => mongoose.Types.ObjectId(id));
+      matchConditions.assignTo = { $in: assignToIds };
+    }
+    if (weekOfYear.length>0) {
+      matchConditions.weekOfYear = { $in: weekOfYear };
+    }
+    aggregationPipeline.push(
+      {$match:matchConditions},      
+    );
     
     
-          if (searchText) {
-              aggregationPipeline.unshift({
-                $search: {
-                  index: "fuzzy3",
-                  compound: {
-                    should: [
-                      {
-                        autocomplete: {
-                          query: searchText,
-                          path: "community"
-                        }
-                      },
-                      {
-                        autocomplete: {
-                          query: searchText,
-                          path: "surname"
-                        }
-                      },
-                      {
-                        autocomplete: {
-                          query: searchText,
-                          path: "meaning"
-                        }
-                      }
-                    ]
-                  }
-                }
-              });
-            }
+          // Ensure that $search is the first stage in the pipeline
+
+
+// ... (other pipeline stages)
+
             aggregationPipeline.push({
               $lookup: {
                 from: "pdUsers", // The name of the collection to join
@@ -180,7 +187,7 @@ exports.getSearchFilterData = async (req, res) => {
               },
             });
 
-            const filteredUsers = await surnamesModel.aggregate(aggregationPipeline);          
+            const filteredUsers = await surnamesModel.aggregate(aggregationPipeline).limit(10000)    
     res.status(200).send({filteredUsers, // Your paginated data
     });
   } catch (e) {
@@ -191,97 +198,77 @@ exports.getSearchFilterData = async (req, res) => {
 
 exports.getCountsOfSurname = async (req, res) => {
   try {
-    const script = req.body.script;
-    const religion = req.body.religion;
-    const assignTo = req.body.assignTo;
-    const sStatus = req.body.sStatus;
-    const weekOfYear=req.body.weekOfYear
+    const script = req.body.script||[];
+    const religion = req.body.religion||[];
+    const assignTo = req.body.assignTo||[];
+    const sStatus = req.body.sStatus||[];
+    const weekOfYear=req.body.weekOfYear||[]
 
+    if (
+      religion.length === 0 &&
+      script.length === 0 &&
+      sStatus.length === 0 &&
+      assignTo.length === 0 &&
+      weekOfYear.length === 0
+    ) {
+      // Send an empty response with a status code of 200
+      return res.status(200).send([]);
+    }
+    const aggregationPipeline=[];
     const matchConditions = {};
-
     if (religion.length > 0) {
-      matchConditions.religion = { $in: religion };
+      aggregationPipeline.push({ $unwind: "$religion" });
+      matchConditions.religion = { $in: religion};
     }
     if (script.length > 0) {
+      aggregationPipeline.push({ $unwind: "$script" });
       matchConditions.script = { $in: script };
+    }
+    if (sStatus.length > 0) {
+      matchConditions.sStatus = { $in: sStatus };
     }
     if (assignTo.length > 0) {
       const assignToIds = assignTo.map((id) => mongoose.Types.ObjectId(id));
       matchConditions.assignTo = { $in: assignToIds };
     }
+    if (weekOfYear.length>0) {
+      matchConditions.weekOfYear = { $in: weekOfYear };
+    }
+    aggregationPipeline.push(
+      {$match:matchConditions},      
+    );
+    const groupStage = {
+      $group: {
+        _id: {},
+        count: { $sum: 1 },
+        pd_count: { $sum: "$pd_count" },
+      },
+    };
+
+    if (religion.length > 0) {
+      groupStage.$group._id.religion = "$religion";
+    }
+
+    if (script.length > 0) {
+      groupStage.$group._id.script = "$script";
+    }
+    if (assignTo.length > 0) {
+      aggregationPipeline.push({$lookup: {
+        from: "pdUsers", 
+        localField: "assignTo", 
+        foreignField: "_id", 
+        as: "assignTo", 
+      },});
+      groupStage.$group._id.assignTo = "$assignTo.fname";
+    }
     if (sStatus.length > 0) {
-      matchConditions.sStatus = { $in: sStatus };
+      groupStage.$group._id.sStatus = "$sStatus";
     }
     if (weekOfYear.length > 0) {
-      matchConditions.weekOfYear = { $in: weekOfYear};
+      groupStage.$group._id.weekOfYear= "$weekOfYear";
     }
 
-    // Define a variable to store the aggregation pipeline
-    let aggregationPipeline = [];
-
-    // Add the match stage
-    aggregationPipeline.push({ $match: matchConditions });
-    aggregationPipeline.push({
-      $lookup: {
-      from: "pdUsers", // The name of the collection to join
-      localField: "assignTo", // The field from your current collection
-      foreignField: "_id", // The field from the "pdUsers" collection
-      as: "assignTo", // The name of the output array
-    }
-  })
-
-    // Combine both facets into a single stage
-    aggregationPipeline.push({
-      
-      $facet: {
-        ReligionFacet: [
-          {
-            $group: {
-              _id: "$religion",
-              count: { $sum: 1 },
-                 }
-          }
-        ],
-           ScriptFacet: [
-          {
-            $group: {
-              _id: "$script",
-              count: { $sum: 1 },
-                 }
-          }
-        ],
-        AssigntoFacet: [
-          {
-            $group: {
-              _id: "$assignTo.fname",
-              count: { $sum: 1 },
-              // artists: {
-              //   $push: {
-              //     name: "$surname",
-              //     religion: "$religion",
-              //     // Add other fields as needed
-              // },
-             // },
-            },
-          },
-        ],
-        WeekNoFacet: [
-          {
-            $group: {
-              _id: "$weekOfYear",
-              count: { $sum: 1 },
-              // artists: {
-              //   $push: {
-              //     name: "$surname",
-              //     religion: "$religion",
-              //     // Add other fields as needed
-              //   },
-              // },
-            },
-          },
-        ],
-      },
-    });
+    aggregationPipeline.push(groupStage);
 
     // Perform the MongoDB aggregation
     const result = await surnamesModel.aggregate(aggregationPipeline);

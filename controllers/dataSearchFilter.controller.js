@@ -187,7 +187,7 @@ exports.getSearchFilterData = async (req, res) => {
               },
             });
 
-            const filteredUsers = await surnamesModel.aggregate(aggregationPipeline)    
+            const filteredUsers = await surnamesModel.aggregate(aggregationPipeline).limit(10000)    
     res.status(200).send({filteredUsers, // Your paginated data
     });
   } catch (e) {

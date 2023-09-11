@@ -104,13 +104,15 @@ exports.getSearchFilterData = async (req, res) => {
     const sStatuss = req.body.sStatus || [];
     const assignTo = req.body.assignTo || [];
     const weekOfYear = req.body.weekOfYear || [];
+    const dynamic_search=req.query.dynamic_search||""
     if (
       religions.length === 0 &&
       scripts.length === 0 &&
       searchText === "" &&
       sStatuss.length === 0 &&
       assignTo.length === 0 &&
-      weekOfYear.length=== 0
+      weekOfYear.length=== 0&&
+      dynamic_search===""
     ) {
       // Send an empty response with a status code of 200
       return res.status(200).send([]);
@@ -157,6 +159,40 @@ exports.getSearchFilterData = async (req, res) => {
     aggregationPipeline.push(
       {$match:matchConditions},      
     );
+    if (dynamic_search !== "") {
+      const operatorMapping = {
+        ">": "$gt",
+        ">=": "$gte",
+        "<": "$lt",
+        "<=": "$lte",
+        "start": "start",
+      };
+      
+      const cleanedDynamicSearch = dynamic_search.replace(/^"|"$/g, "");
+      
+      const conditions = cleanedDynamicSearch.split(",").filter(Boolean); // Split by commas
+      
+      conditions.forEach((condition) => {
+        const [field, operator, value] = condition.split(/\s*(=|>|<|>=|<=|start)\s*/);
+        if (field && operator && value && operatorMapping[operator]) {
+          const matchCondition = {};
+          matchCondition[field] = {};
+      
+          if (operator === "start") {
+            matchCondition[field] = {
+              $regex: `^${value}`,
+              $options: "i",
+            };
+          } else {
+            matchCondition[field][operatorMapping[operator]] = parseFloat(value);
+          }
+      
+          aggregationPipeline.push({
+            $match: matchCondition,
+          });
+        }
+      });
+    } 
     
     
           // Ensure that $search is the first stage in the pipeline
@@ -183,6 +219,7 @@ exports.getSearchFilterData = async (req, res) => {
                 sStatus: 1,          
                 weekOfYear: 1,
                 assignTo: "$assignTo.fname",
+                pd_count:1
                 // Add other fields you want to include
               },
             });

@@ -98,13 +98,15 @@ require("dotenv").config();
 
 exports.getSearchFilterData = async (req, res) => {
   try {
+    const page = parseInt(req.query.page) || 1; // Default to page 1
+    const itemsPerPage = parseInt(req.query.itemsPerPage) || 10;
     const religions = req.body.religion || [];
     const scripts = req.body.script || [];
     const searchText = req.body.searchText || "";
     const sStatuss = req.body.sStatus || [];
     const assignTo = req.body.assignTo || [];
     const weekOfYear = req.body.weekOfYear || [];
-    const dynamic_search=req.query.dynamic_search||""
+    const dynamic_search=req.body.dynamic_search||""
     if (
       religions.length === 0 &&
       scripts.length === 0 &&
@@ -112,11 +114,16 @@ exports.getSearchFilterData = async (req, res) => {
       sStatuss.length === 0 &&
       assignTo.length === 0 &&
       weekOfYear.length=== 0&&
-      dynamic_search===""
+      dynamic_search === ""
     ) {
+      const responseObj = {
+        totalItems: 0,
+        data: [], // You can include other data properties as needed
+      }
       // Send an empty response with a status code of 200
-      return res.status(200).send([]);
-    }
+      return res.status(200).json(responseObj);
+    };
+    
 
     const aggregationPipeline=[];
     if (searchText!=="") {
@@ -147,11 +154,23 @@ exports.getSearchFilterData = async (req, res) => {
       matchConditions.script = { $in: scripts };
     }
     if (sStatuss.length > 0) {
+      if(sStatuss.includes("SN")||sStatuss.includes("SV")||sStatuss.includes("SS")){
       matchConditions.sStatus = { $in: sStatuss };
+      }
+      if(sStatuss.includes('Y')||sStatuss.includes('N')||sStatuss.includes('B')){
+        matchConditions.isPublished={$in:sStatuss}
+      }
+    
     }
     if (assignTo.length > 0) {
-      const assignToIds = assignTo.map((id) => mongoose.Types.ObjectId(id));
-      matchConditions.assignTo = { $in: assignToIds };
+      if (assignTo.includes(null)) {
+        // Handle the case where "null" is selected
+        matchConditions.assignTo = { $in: [null, ...assignTo.filter(id => id !== null).map(id => mongoose.Types.ObjectId(id))] };
+      } else {
+        // Handle the case where specific values are selected
+        const assignToIds = assignTo.map((id) => mongoose.Types.ObjectId(id));
+        matchConditions.assignTo = { $in: assignToIds };
+      }
     }
     if (weekOfYear.length>0) {
       matchConditions.weekOfYear = { $in: weekOfYear };
@@ -223,9 +242,25 @@ exports.getSearchFilterData = async (req, res) => {
                 // Add other fields you want to include
               },
             });
+            const countPipeline = [
+              ...aggregationPipeline, // Copy the existing pipeline stages
+              {
+                $count: "totalCount"
+              }
+            ];
+            
+            const [countResult] = await surnamesModel.aggregate(countPipeline);
+            
+            const totalCount = countResult ? countResult.totalCount : 0;
+            const skip = (page - 1) * itemsPerPage;
+            aggregationPipeline.push({ $skip: skip });
+            aggregationPipeline.push({ $limit: itemsPerPage });
+            const filteredUsers = await surnamesModel.aggregate(aggregationPipeline)
 
-            const filteredUsers = await surnamesModel.aggregate(aggregationPipeline).limit(10000)    
-    res.status(200).send({filteredUsers, // Your paginated data
+            const totalPages = Math.ceil(totalCount / itemsPerPage);
+    res.status(200).send({filteredUsers,
+      totalPages: totalPages,
+      totalItems:totalCount // Your paginated data
     });
   } catch (e) {
     console.log(e)

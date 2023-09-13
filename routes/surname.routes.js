@@ -33,6 +33,7 @@ router.get('/countAndUpdatedSurnames',surnameController.countAndUpdatedSurnames)
 router.get('/getDropDownMasterInReligion',surnameController.getDropDownMasterInReligion);
 router.get('/getDropDownMasterInScript',surnameController.getDropDownMasterInScript);
 router.get('/getDropDownMasterInweekOfYear',surnameController.getDropDownMasterInweekOfYear);
+router.get('/getDropDownMasterInAssignTo',surnameController.getDropDownMasterInAssignTo);
 router.get('/getTranslations',surnameController.getTranslations);
 router.put('/updateSurnameAssignTo/:ecode',surnameController.updateSurnameAssignTo)
 router.post('/getSurnameDetails',surnameController.getSurnameDetails);

@@ -3,6 +3,7 @@ const EntityLogModel=require('../models/entityLog.model')
 const religionModel = require('../models/religion.model')
 const communityModel = require('../models/community.model')
 const scriptModel = require('../models/script.model')
+const pdUser=require('../models/pdUser.model')
 const surnameDetailsModel=require('../models/surnamedetails.model')
 const mongoose = require('mongoose')
 const ObjectsToCsv = require('objects-to-csv');
@@ -3283,9 +3284,9 @@ exports.getSurnameById = async (req, res) => {
                 if (getSurname.sStatus === 'SN') {
                     getSurname.sStatus = 'New';
                 } else if (getSurname.sStatus === 'SV') {
-                    getSurname.sStatus = 'For Updated';
+                    getSurname.sStatus = 'For Review';
                 } else if (getSurname.sStatus === 'SS') {
-                    getSurname.sStatus = 'Submitted';
+                    getSurname.sStatus = 'Verified';
                 }
 
                 if(getSurname.isPublished==="Y"){
@@ -3403,6 +3404,26 @@ exports.getTranslations = async (req, res) => {
         res.status(400).send(e);
     }
 }
+exports.getDropDownMasterInAssignTo = async (req, res) => {
+    try {
+        // Find distinct 'assignTo' values
+        const distinctAssignToValues = await surnamesModel.distinct('assignTo');
+        if (distinctAssignToValues.length > 0) {
+            const users = await pdUser.find({ _id: { $in: distinctAssignToValues } });
+            if (users.length > 0) {
+                res.status(200).send(users);
+            } else {
+                res.status(404).send({
+                    message: "No User Data Found!"
+                });
+    }
+ }
+ } catch (e) {
+        console.log(e);
+        res.status(400).send(e);
+    }
+}
+
 
 
 

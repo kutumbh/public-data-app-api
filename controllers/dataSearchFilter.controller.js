@@ -107,6 +107,7 @@ exports.getSearchFilterData = async (req, res) => {
     const assignTo = req.body.assignTo || [];
     const weekOfYear = req.body.weekOfYear || [];
     const dynamic_search=req.body.dynamic_search||""
+    const data=req.query.data;
     if (
       religions.length === 0 &&
       scripts.length === 0 &&
@@ -281,7 +282,8 @@ exports.getSearchFilterData = async (req, res) => {
             const totalPages = Math.ceil(totalCount / itemsPerPage);
             res.status(200).send({filteredUsers,
               totalPages: totalPages,
-              totalItems:totalCount 
+              totalItems:totalCount ,
+              data
             });
   } catch (e) {
     console.log(e)

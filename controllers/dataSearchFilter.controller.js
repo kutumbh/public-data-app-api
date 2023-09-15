@@ -130,17 +130,25 @@ exports.getSearchFilterData = async (req, res) => {
       aggregationPipeline.unshift({
           $search: {
               index: "fuzzy3",
-              
-                autocomplete: {
-                  path: "surname",
-                  query:searchText,
-                  fuzzy: {
-                    prefixLength: 1,
-                    maxEdits: 1,
-                    maxExpansions: 256,
+              compound: {
+                should: [
+                   {
+                    autocomplete: {
+                      query: searchText,
+                      path: "surname", },
+                      // fuzzy: {
+                      //   prefixLength: 1,
+                      //   maxEdits: 1,
+                      //   maxExpansions: 256,
+                      // },
                   },
-                },
-              
+                  {
+                    autocomplete: {
+                      query: searchText,
+                      path: "community", }
+                  }
+                ]
+              }
           }
       });
   }
@@ -185,6 +193,7 @@ exports.getSearchFilterData = async (req, res) => {
         "<": "$lt",
         "<=": "$lte",
         "start": "start",
+        "=":"="
       };
       
       const cleanedDynamicSearch = dynamic_search.replace(/^"|"$/g, "");
@@ -202,9 +211,19 @@ exports.getSearchFilterData = async (req, res) => {
               $regex: `^${value}`,
               $options: "i",
             };
+          }  else if (operator === '=') {
+            // Handle exact match
+            if (!isNaN(parseFloat(value))) {
+              // If the value is a number, parse it as a float
+              matchCondition[field] = parseFloat(value);
+            } else {
+              // If the value is not a number, treat it as a string
+              matchCondition[field] = {$regex: new RegExp(`^${value}$`, 'i')};
+            }
           } else {
-            matchCondition[field][operatorMapping[operator]] = parseFloat(value);
+            matchCondition[field][operatorMapping[operator]] = parseFloat(value) || value;
           }
+
       
           aggregationPipeline.push({
             $match: matchCondition,
@@ -227,6 +246,8 @@ exports.getSearchFilterData = async (req, res) => {
                 as: "assignTo", // The name of the output array
               },
             });
+            aggregationPipeline.push({     
+              $sort: {surname: 1 }})
             aggregationPipeline.push({
               $project: {
                 _id:1,

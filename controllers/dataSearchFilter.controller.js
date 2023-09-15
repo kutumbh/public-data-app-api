@@ -279,10 +279,10 @@ exports.getSearchFilterData = async (req, res) => {
             const filteredUsers = await surnamesModel.aggregate(aggregationPipeline)
 
             const totalPages = Math.ceil(totalCount / itemsPerPage);
-    res.status(200).send({filteredUsers,
-      totalPages: totalPages,
-      totalItems:totalCount // Your paginated data
-    });
+            res.status(200).send({filteredUsers,
+              totalPages: totalPages,
+              totalItems:totalCount 
+            });
   } catch (e) {
     console.log(e)
     res.status(400).send(e);

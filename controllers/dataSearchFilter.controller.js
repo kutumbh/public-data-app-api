@@ -311,7 +311,8 @@ exports.getSearchFilterData = async (req, res) => {
                 weekOfYear: 1,
                 assignTo: "$assignTo.fname",
                 pd_count:1,
-                updatedAt:1
+                updatedAt:1,
+                isPublished:1
               },
             });
             

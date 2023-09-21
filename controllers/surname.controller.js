@@ -234,11 +234,12 @@ exports.updateSurnameForm = async ({ params, body }, res) => {
                 wikiUrl: body.wikiUrl,
                 sStatus: body.sStatus,
                 assignTo: body.assignTo,
-                isPublished: body.isPublished
+                isPublished: body.isPublished,
+                modifiedBy:body.modifiedBy
             };
-            console.log(data)
+            
             const updatedData = await surnamesModel.findByIdAndUpdate({ _id: _id }, data, { new: true });
-            console.log(updatedData)
+            
             if (!updatedData) {
                 return res.status(404).send({ message: 'No Data found' });
             }
@@ -3275,9 +3276,7 @@ exports.getDropDownMasterInSurname = async (req, res) => {
 exports.getSurnameById = async (req, res) => {
     try {
         const _id = req.params._id;
-        console.log("id:", _id)
-        const getSurname = await surnamesModel.findOne({ _id: _id }).populate('assignTo')
-        console.log(getSurname)
+        const getSurname = await surnamesModel.findOne({ _id: _id }).populate('assignTo').populate('modifiedBy')
         
             if (getSurname) {
                 // Modify the sStatus property

@@ -323,10 +323,13 @@ exports.getSearchFilterData = async (req, res) => {
             aggregationPipeline.push({ $skip: skip });
             aggregationPipeline.push({ $limit: itemsPerPage });
             const filteredUsers = await surnamesModel.aggregate(aggregationPipeline)
+
+
+
             const totalPages = Math.ceil(totalCount / itemsPerPage);
             res.status(200).send({filteredUsers,
               totalPages: totalPages,
-              totalItems:totalCount 
+              totalItems:totalCount ,
             });
   } catch (e) {
     console.log(e)

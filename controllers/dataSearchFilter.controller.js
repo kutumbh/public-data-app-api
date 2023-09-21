@@ -152,6 +152,7 @@ exports.getSearchFilterData = async (req, res) => {
           }
       });
   }
+  let sortField = null;
     const matchConditions = {};
     if (religions.length > 0) {
       //aggregationPipeline.push({ $unwind: "$religion" });
@@ -187,31 +188,36 @@ exports.getSearchFilterData = async (req, res) => {
       {$match:matchConditions},      
     );
     if (dynamic_search !== "") {
+      
       const operatorMapping = {
         ">": "$gt",
         ">=": "$gte",
         "<": "$lt",
         "<=": "$lte",
         "start": "start",
-        "=":"="
+        "=": "=",
+        "Ends": "Ends",
+        "length>":"length>",
+        "length<":"length<"
+        
       };
-      
+    
       const cleanedDynamicSearch = dynamic_search.replace(/^"|"$/g, "");
-      
-      const conditions = cleanedDynamicSearch.split(",").filter(Boolean); // Split by commas
+    
+      const conditions = cleanedDynamicSearch.split(",").filter(Boolean);
       
       conditions.forEach((condition) => {
-        const [field, operator, value] = condition.split(/\s*(=|>|<|>=|<=|start)\s*/);
+        const [field, operator, value] = condition.split(/\s*(=|>=|<=|<|>|length>|length<|start|Ends)\s*/);
         if (field && operator && value && operatorMapping[operator]) {
           const matchCondition = {};
-          matchCondition[field] = {};
-      
+    
           if (operator === "start") {
             matchCondition[field] = {
               $regex: `^${value}`,
               $options: "i",
             };
-          }  else if (operator === '=') {
+          }  
+          if (operator === '=') {
             // Handle exact match
             if (!isNaN(parseFloat(value))) {
               // If the value is a number, parse it as a float
@@ -220,24 +226,67 @@ exports.getSearchFilterData = async (req, res) => {
               // If the value is not a number, treat it as a string
               matchCondition[field] = {$regex: new RegExp(`^${value}$`, 'i')};
             }
-          } else {
-            matchCondition[field][operatorMapping[operator]] = parseFloat(value) || value;
           }
+          if (operator === 'Ends') {
+            matchCondition[field] = { $regex: new RegExp(`${value}$`, 'i') };
+          } 
+          if (operator === "length>") {
+            const lengthMatch = {
+              $match: {
+                [field]: { "$exists": true },
+                $expr: { $gt: [{ $strLenCP: `$${field}` }, parseFloat(value)] }
+              }
+            };
+            aggregationPipeline.push(lengthMatch);
+          }
+          if (operator === "length<") {
+            const lengthMatch = {
+              $match: {
+                [field]: { "$exists": true },
+                $expr: { $lt: [{ $strLenCP: `$${field}` }, parseFloat(value)] }
+              }
+            };
+            aggregationPipeline.push(lengthMatch);
+          }
+          if (operator === '>') {
+            matchCondition[field] = { $gt: parseFloat(value) };
+            sortField = field;
+          } 
+          if (operator === '<') {
+            matchCondition[field] = { $lt: parseFloat(value) };
+            sortField = field;
+          } 
+          if (operator === '>=') {
+            matchCondition[field] = { $gte: parseFloat(value) };
+            sortField = field;
+          } 
+          if (operator === '<=') {
+            matchCondition[field] = { $lte: parseFloat(value) };
+            sortField = field;
+          } 
 
-      
           aggregationPipeline.push({
             $match: matchCondition,
           });
+
+
         }
       });
     } 
-    
-    
-          // Ensure that $search is the first stage in the pipeline
-
-
-// ... (other pipeline stages)
-
+    if (sortField === "pd_count") {
+      // Add the $sort stage for pd_count only in descending order
+      aggregationPipeline.push({
+        $sort: {
+          pd_count: -1,
+        },
+      });
+    }
+    const countPipeline = [
+      ...aggregationPipeline, 
+      {
+        $count: "totalCount"
+      }
+    ];
             aggregationPipeline.push({
               $lookup: {
                 from: "pdUsers", // The name of the collection to join
@@ -246,8 +295,10 @@ exports.getSearchFilterData = async (req, res) => {
                 as: "assignTo", // The name of the output array
               },
             });
+            if(sortField !== "pd_count"){
             aggregationPipeline.push({     
               $sort: {surname: 1 }})
+            }
             aggregationPipeline.push({
               $project: {
                 _id:1,
@@ -259,25 +310,18 @@ exports.getSearchFilterData = async (req, res) => {
                 sStatus: 1,          
                 weekOfYear: 1,
                 assignTo: "$assignTo.fname",
-                pd_count:1
-                // Add other fields you want to include
+                pd_count:1,
+                updatedAt:1
               },
             });
-            const countPipeline = [
-              ...aggregationPipeline, // Copy the existing pipeline stages
-              {
-                $count: "totalCount"
-              }
-            ];
             
-            const [countResult] = await surnamesModel.aggregate(countPipeline);
+            const [countResult] = await surnamesModel.aggregate(countPipeline).allowDiskUse(true);;
             
             const totalCount = countResult ? countResult.totalCount : 0;
             const skip = (page - 1) * itemsPerPage;
             aggregationPipeline.push({ $skip: skip });
             aggregationPipeline.push({ $limit: itemsPerPage });
             const filteredUsers = await surnamesModel.aggregate(aggregationPipeline)
-
             const totalPages = Math.ceil(totalCount / itemsPerPage);
             res.status(200).send({filteredUsers,
               totalPages: totalPages,

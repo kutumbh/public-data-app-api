@@ -117,6 +117,13 @@ const surnameSchema = new mongoose.Schema(
     }],
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
+      ref: "pdUser",
+      required: false,
+      default: null
+    },
+    modifiedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "pdUser",
       required: false,
       default: null
     }

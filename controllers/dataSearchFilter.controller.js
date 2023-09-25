@@ -104,25 +104,9 @@ exports.getSearchFilterData = async (req, res) => {
     const scripts = req.body.script || [];
     const searchText = req.body.searchText || "";
     const sStatuss = req.body.sStatus || [];
-    const assignTo = req.body.assignTo || [];
+    const assignTo = Array.isArray(req.body.assignTo) ? req.body.assignTo : [req.body.assignTo];
     const weekOfYear = req.body.weekOfYear || [];
     const dynamic_search=req.body.dynamic_search||""
-    if (
-      religions.length === 0 &&
-      scripts.length === 0 &&
-      searchText === "" &&
-      sStatuss.length === 0 &&
-      assignTo.length === 0 &&
-      weekOfYear.length=== 0&&
-      dynamic_search === ""
-    ) {
-      const responseObj = {
-        totalItems: 0,
-        data: [], // You can include other data properties as needed
-      }
-      // Send an empty response with a status code of 200
-      return res.status(200).json(responseObj);
-    };
     
 
     const aggregationPipeline=[];

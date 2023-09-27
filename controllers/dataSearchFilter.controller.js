@@ -1,4 +1,5 @@
 const surnamesModel = require("../models/surname.model");
+const surnameDetailsModel=require("../models/surnamedetails.model")
 const religionModel = require("../models/religion.model");
 const communityModel = require("../models/community.model");
 const scriptModel = require("../models/script.model");
@@ -104,12 +105,30 @@ exports.getSearchFilterData = async (req, res) => {
     const scripts = req.body.script || [];
     const searchText = req.body.searchText || "";
     const sStatuss = req.body.sStatus || [];
-    const assignTo = Array.isArray(req.body.assignTo) ? req.body.assignTo : [req.body.assignTo];
+    const assignTo = req.body.assignTo || [];
     const weekOfYear = req.body.weekOfYear || [];
     const dynamic_search=req.body.dynamic_search||""
+    if (
+      religions.length === 0 &&
+      scripts.length === 0 &&
+      searchText === "" &&
+      sStatuss.length === 0 &&
+      assignTo.length === 0 &&
+      weekOfYear.length=== 0&&
+      dynamic_search === ""
+    ) {
+      const responseObj = {
+        totalItems: 0,
+        data: [], // You can include other data properties as needed
+      }
+      // Send an empty response with a status code of 200
+      return res.status(200).json(responseObj);
+    };
     
 
     const aggregationPipeline=[];
+    const stateaggregationPipeline=[];
+    const statematchCondition = {};
     if (searchText!=="") {
       aggregationPipeline.unshift({
           $search: {
@@ -182,7 +201,8 @@ exports.getSearchFilterData = async (req, res) => {
         "=": "=",
         "Ends": "Ends",
         "length>":"length>",
-        "length<":"length<"
+        "length<":"length<",
+        "contains":"contains",
         
       };
     
@@ -190,75 +210,109 @@ exports.getSearchFilterData = async (req, res) => {
     
       const conditions = cleanedDynamicSearch.split(",").filter(Boolean);
       
-      conditions.forEach((condition) => {
-        const [field, operator, value] = condition.split(/\s*(=|>=|<=|<|>|length>|length<|start|Ends)\s*/);
-        if (field && operator && value && operatorMapping[operator]) {
-          const matchCondition = {};
+
+conditions.forEach((condition) => {
+  let [field, operator, value] = condition.split(/\s*(=|>=|<=|<|>|length>|length<|start|Ends|contains)\s*/);
+  if (field && operator && value && operatorMapping[operator]) {
+    const matchCondition = {};
     
-          if (operator === "start") {
-            matchCondition[field] = {
-              $regex: `^${value}`,
-              $options: "i",
-            };
-          }  
-          if (operator === '=') {
-            // Handle exact match
-            if (!isNaN(parseFloat(value))) {
-              // If the value is a number, parse it as a float
-              matchCondition[field] = parseFloat(value);
-            } else {
-              // If the value is not a number, treat it as a string
-              matchCondition[field] = {$regex: new RegExp(`^${value}$`, 'i')};
-            }
-          }
-          if (operator === 'Ends') {
-            matchCondition[field] = { $regex: new RegExp(`${value}$`, 'i') };
-          } 
-          if (operator === "length>") {
-            const lengthMatch = {
-              $match: {
-                [field]: { "$exists": true },
-                $expr: { $gt: [{ $strLenCP: `$${field}` }, parseFloat(value)] }
-              }
-            };
-            aggregationPipeline.push(lengthMatch);
-          }
-          if (operator === "length<") {
-            const lengthMatch = {
-              $match: {
-                [field]: { "$exists": true },
-                $expr: { $lt: [{ $strLenCP: `$${field}` }, parseFloat(value)] }
-              }
-            };
-            aggregationPipeline.push(lengthMatch);
-          }
-          if (operator === '>') {
-            matchCondition[field] = { $gt: parseFloat(value) };
-            sortField = field;
-          } 
-          if (operator === '<') {
-            matchCondition[field] = { $lt: parseFloat(value) };
-            sortField = field;
-          } 
-          if (operator === '>=') {
-            matchCondition[field] = { $gte: parseFloat(value) };
-            sortField = field;
-          } 
-          if (operator === '<=') {
-            matchCondition[field] = { $lte: parseFloat(value) };
-            sortField = field;
-          } 
 
-          aggregationPipeline.push({
-            $match: matchCondition,
-          });
-
-
-        }
-      });
+    if (operator === "start") {
+      matchCondition[field] = {
+        $regex: `^${value}`,
+        $options: "i",
+      };
+    }  
+    if (operator === '='&& field !== 'state' && field !== 'place count') {
+      if (!isNaN(parseFloat(value))) {
+        matchCondition[field] = parseFloat(value);
+      } else {
+        matchCondition[field] = { $regex: new RegExp(`^${value}$`, 'i') };
+      }
     } 
+     if (operator === 'Ends') {
+      matchCondition[field] = { $regex: new RegExp(`${value}$`, 'i') };
+    } 
+     if (operator === "length>") {
+      const lengthMatch = {
+        $match: {
+          [field]: { $exists: true },
+          $expr: { $gt: [{ $strLenCP: `$${field}` }, parseFloat(value)] },
+        },
+      };
+      aggregationPipeline.push(lengthMatch);
+    } 
+    if (operator === "length<") {
+      const lengthMatch = {
+        $match: {
+          [field]: { $exists: true },
+          $expr: { $lt: [{ $strLenCP: `$${field}` }, parseFloat(value)] },
+        },
+      };
+      aggregationPipeline.push(lengthMatch);
+    } 
+    if (operator === '>' && field !== 'state' && field !== 'place count') {
+      matchCondition[field] = { $gt: parseFloat(value) };
+      sortField = field;
+    } 
+     if (operator === '<' && field !== 'state' && field !== 'place count') {
+      matchCondition[field] = { $lt: parseFloat(value) };
+      sortField = field;
+    } 
+     if (operator === '>=' && field !== 'state') {
+      matchCondition[field] = { $gte: parseFloat(value) };
+      sortField = field;
+    }
+     if (operator === '<=' && field !== 'state') {
+      matchCondition[field] = { $lte: parseFloat(value) };
+      sortField = field;
+    } 
+    if (operator === 'contains') {
+      matchCondition[field] = { $regex: new RegExp(`${value}`, 'i') };
+    } 
+     if (field === 'state') {
+      if (operator === '=') {
+        statematchCondition['place._id'] = { $regex: new RegExp(`${value}`, 'i') };
+      }
+    }
+     if (field === 'place count') {
+      if (operator === '>') {
+        statematchCondition['place.count'] = { $gt: parseFloat(value) };
+      } else if (operator === '<') {
+        statematchCondition['place.count'] = { $lt: parseFloat(value) };
+      }
+    }
+
+    if (Object.keys(matchCondition).length > 0) {
+      aggregationPipeline.push({
+        $match: matchCondition,
+      });
+    }
+  }
+});
+    } 
+    if (Object.keys(statematchCondition).length > 0){
+      const surnameFilter = await surnameDetailsModel.aggregate([
+        {
+          $match: statematchCondition,
+        },
+        {
+          $project: {
+            _id: 0,
+            lastName: 1,
+          },
+        },
+      ])
+      if (surnameFilter.length > 0) {
+        const matchedLastNames = surnameFilter.map((entry) => entry.lastName);      
+        aggregationPipeline.push({
+          $match: {
+            surname: { $in: matchedLastNames }
+          }
+        });
+      }
+    }
     if (sortField === "pd_count") {
-      // Add the $sort stage for pd_count only in descending order
       aggregationPipeline.push({
         $sort: {
           pd_count: -1,

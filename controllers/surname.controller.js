@@ -3407,21 +3407,31 @@ exports.getDropDownMasterInAssignTo = async (req, res) => {
     try {
         // Find distinct 'assignTo' values
         const distinctAssignToValues = await surnamesModel.distinct('assignTo');
-        if (distinctAssignToValues.length > 0) {
-            const users = await pdUser.find({ _id: { $in: distinctAssignToValues } });
-            if (users.length > 0) {
-                res.status(200).send(users);
-            } else {
-                res.status(404).send({
-                    message: "No User Data Found!"
-                });
-    }
- }
- } catch (e) {
+        console.log(distinctAssignToValues);
+    
+        let users = [];
+    
+        if (distinctAssignToValues.includes(null)) {
+            users.push(null);
+        }
+        if (distinctAssignToValues !== null) {
+            users = users.concat(await pdUser.find({ _id: { $in: distinctAssignToValues } }));
+        }
+        console.log(users)
+    
+        if (users.length > 0) {
+            res.status(200).send(users);
+        } else {
+            res.status(404).send({
+                message: "No User Data Found!"
+            });
+        }
+    } catch (e) {
         console.log(e);
         res.status(400).send(e);
     }
 }
+
 
 
 

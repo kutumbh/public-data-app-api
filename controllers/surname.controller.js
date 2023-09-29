@@ -21,11 +21,11 @@ const s3 = new aws.S3()
 exports.createSurname = async ({ body }, res) => {
     try {
         // const name = new namesModel(body)
-        const surnames = await surnamesModel.findOne({ surname: body.Surname });
+        const surnames = await surnamesModel.findOne({ surname: body.surname });
         console.log(surnames)
         if (surnames) {
             res.status(404).send({
-                message: 'Data Already Present, Please Update Translation field!'
+                message: 'Data Already Present'
             })
         } else {
             const surnames = new surnamesModel(body)

@@ -3,8 +3,12 @@ const router = Router();
 var authMiddleware = require("../Middleware/AuthMiddleware");
 
 const surnameController = require("../controllers/surname.controller");
+// router.post(
+//     "/createSurname",authMiddleware.Validate,
+//     surnameController.createSurname
+// );
 router.post(
-    "/createSurname",authMiddleware.Validate,
+    "/createSurname",
     surnameController.createSurname
 );
 router.get(

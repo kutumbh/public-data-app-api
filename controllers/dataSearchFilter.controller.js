@@ -127,7 +127,6 @@ exports.getSearchFilterData = async (req, res) => {
     
 
     const aggregationPipeline=[];
-    const stateaggregationPipeline=[];
     const statematchCondition = {};
     if (searchText!=="") {
       aggregationPipeline.unshift({
@@ -381,20 +380,51 @@ exports.getCountsOfSurname = async (req, res) => {
     const religion = req.body.religion||[];
     const assignTo = req.body.assignTo||[];
     const sStatus = req.body.sStatus||[];
-    const weekOfYear=req.body.weekOfYear||[]
+    const weekOfYear=req.body.weekOfYear||[];
+    const searchText = req.body.searchText || "";
+    const dynamic_search=req.body.dynamic_search||""
 
     if (
       religion.length === 0 &&
       script.length === 0 &&
+      searchText === "" &&
       sStatus.length === 0 &&
       assignTo.length === 0 &&
-      weekOfYear.length === 0
+      weekOfYear.length=== 0&&
+      dynamic_search === ""
     ) {
       // Send an empty response with a status code of 200
       return res.status(200).send([]);
     }
     const aggregationPipeline=[];
+    const statematchCondition = {};
     const matchConditions = {};
+    if (searchText!=="") {
+      aggregationPipeline.unshift({
+          $search: {
+              index: "fuzzy3",
+              compound: {
+                should: [
+                   {
+                    autocomplete: {
+                      query: searchText,
+                      path: "surname", },
+                      // fuzzy: {
+                      //   prefixLength: 1,
+                      //   maxEdits: 1,
+                      //   maxExpansions: 256,
+                      // },
+                  },
+                  {
+                    autocomplete: {
+                      query: searchText,
+                      path: "community", }
+                  }
+                ]
+              }
+          }
+      });
+  }
     if (religion.length > 0) {
       aggregationPipeline.push({ $unwind: "$religion" });
       matchConditions.religion = { $in: religion};
@@ -416,6 +446,129 @@ exports.getCountsOfSurname = async (req, res) => {
     aggregationPipeline.push(
       {$match:matchConditions},      
     );
+    if (dynamic_search !== "") {
+      
+      const operatorMapping = {
+        ">": "$gt",
+        ">=": "$gte",
+        "<": "$lt",
+        "<=": "$lte",
+        "start": "start",
+        "=": "=",
+        "Ends": "Ends",
+        "length>":"length>",
+        "length<":"length<",
+        "contains":"contains",
+        
+      };
+    
+      const cleanedDynamicSearch = dynamic_search.replace(/^"|"$/g, "");
+    
+      const conditions = cleanedDynamicSearch.split(",").filter(Boolean);
+      
+
+conditions.forEach((condition) => {
+  let [field, operator, value] = condition.split(/\s*(=|>=|<=|<|>|length>|length<|start|Ends|contains)\s*/);
+  if (field && operator && value && operatorMapping[operator]) {
+    console.log(field, operator, value)
+    const matchCondition = {};
+    
+
+    if (operator === "start") {
+      matchCondition[field] = {
+        $regex: `^${value}`,
+        $options: "i",
+      };
+    }  
+    if (operator === '='&& field !== 'state' && field !== 'place count') {
+      if (!isNaN(parseFloat(value))) {
+        matchCondition[field] = parseFloat(value);
+      } else {
+        matchCondition[field] = { $regex: new RegExp(`^${value}$`, 'i') };
+      }
+    } 
+     if (operator === 'Ends') {
+      matchCondition[field] = { $regex: new RegExp(`${value}$`, 'i') };
+    } 
+     if (operator === "length>") {
+      const lengthMatch = {
+        $match: {
+          [field]: { $exists: true },
+          $expr: { $gt: [{ $strLenCP: `$${field}` }, parseFloat(value)] },
+        },
+      };
+      aggregationPipeline.push(lengthMatch);
+    } 
+    if (operator === "length<") {
+      const lengthMatch = {
+        $match: {
+          [field]: { $exists: true },
+          $expr: { $lt: [{ $strLenCP: `$${field}` }, parseFloat(value)] },
+        },
+      };
+      aggregationPipeline.push(lengthMatch);
+    } 
+    if (operator === '>' && field !== 'state' && field !== 'place count') {
+      matchCondition[field] = { $gt: parseFloat(value) };
+      sortField = field;
+    } 
+     if (operator === '<' && field !== 'state' && field !== 'place count') {
+      matchCondition[field] = { $lt: parseFloat(value) };
+      sortField = field;
+    } 
+     if (operator === '>=' && field !== 'state') {
+      matchCondition[field] = { $gte: parseFloat(value) };
+      sortField = field;
+    }
+     if (operator === '<=' && field !== 'state') {
+      matchCondition[field] = { $lte: parseFloat(value) };
+      sortField = field;
+    } 
+    if (operator === 'contains') {
+      matchCondition[field] = { $regex: new RegExp(`${value}`, 'i') };
+    } 
+     if (field === 'state') {
+      if (operator === '=') {
+        statematchCondition['place._id'] = { $regex: new RegExp(`${value}`, 'i') };
+      }
+    }
+     if (field === 'place count') {
+      if (operator === '>') {
+        statematchCondition['place.count'] = { $gt: parseFloat(value) };
+      } else if (operator === '<') {
+        statematchCondition['place.count'] = { $lt: parseFloat(value) };
+      }
+    }
+
+    if (Object.keys(matchCondition).length > 0) {
+      aggregationPipeline.push({
+        $match: matchCondition,
+      });
+    }
+  }
+});
+    } 
+    if (Object.keys(statematchCondition).length > 0){
+      const surnameFilter = await surnameDetailsModel.aggregate([
+        {
+          $match: statematchCondition,
+        },
+        {
+          $project: {
+            _id: 0,
+            lastName: 1,
+          },
+        },
+      ])
+      if (surnameFilter.length > 0) {
+        const matchedLastNames = surnameFilter.map((entry) => entry.lastName);      
+        aggregationPipeline.push({
+          $match: {
+            surname: { $in: matchedLastNames }
+          }
+        });
+      }
+    }
     const groupStage = {
       $group: {
         _id: {},

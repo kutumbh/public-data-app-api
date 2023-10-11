@@ -276,7 +276,8 @@ exports.updateSurnameForm = async ({ params, body }, res) => {
             const newEntityLogEntry = new EntityLogModel({
                 refURL: body.refURL,
                 comment: body.comment,
-                surnameId:_id
+                surnameId:_id,
+                modifiedBy:body.modifiedBy
             });
             const createdEntityLogEntry = await newEntityLogEntry.save();
 
